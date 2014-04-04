@@ -1,4 +1,5 @@
-xtal.js
-=======
+Readme for xtal.js 
+==================
 
-JavaScript code for X-ray crystallography applications
+This is mostly experimental code for testing ideas for web interfaces for
+X-ray crystallography applications.
