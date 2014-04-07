@@ -3,7 +3,7 @@
 // UNIT CELL
 // Derived from cctbx.uctbx (C++ code)
 //
-function unit_cell (a, b, c, alpha, beta, gamma) {
+function UnitCell (a, b, c, alpha, beta, gamma) {
   this.a = a;
   this.b = b;
   this.c = c;
@@ -167,7 +167,7 @@ function ccp4_map (mapdata) {
   cellIntData[3] = mapdata[13];
   cellIntData[4] = mapdata[14];
   cellIntData[5] = mapdata[15];
-  this.unit_cell = new unit_cell(
+  this.unit_cell = new UnitCell(
     cellFloatData[0],
     cellFloatData[1],
     cellFloatData[2],
@@ -275,4 +275,19 @@ function cartesian_map_data (unit_cell, map_data, center, radius) {
 // MATH UTILITIES
 function deg2rad (angle) {
   return angle * Math.PI / 180;
+}
+
+function distance (xyz1, xyz2) {
+  return Math.sqrt(
+    Math.pow(xyz2[0] - xyz1[0], 2) +
+    Math.pow(xyz2[1] - xyz1[1], 2) +
+    Math.pow(xyz2[2] - xyz1[2], 2));
+}
+
+function midpoint (xyz1, xyz2) {
+  return [
+    xyz1[0] + (xyz2[0] - xyz1[0]) / 2,
+    xyz1[1] + (xyz2[1] - xyz1[1]) / 2,
+    xyz1[2] + (xyz2[2] - xyz1[2]) / 2
+  ];
 }
