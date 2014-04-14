@@ -155,7 +155,7 @@ function get_grid_value (i, j, k, value) {
 // CCP4 MAP
 // http://www.ccp4.ac.uk/html/maplib.html#description
 function ccp4_map (mapdata) {
-  console.log("Map data size: " + mapdata.length);
+  //console.log("Map data size: " + mapdata.length);
   this.mode = mapdata[3];
   this.dim = [ mapdata[7], mapdata[8], mapdata[9] ];
   var cellData = new ArrayBuffer(24);
@@ -210,18 +210,13 @@ function ccp4_map (mapdata) {
         var j = i_crs[order_xyz[1]];
         var k = i_crs[order_xyz[2]];
         intData[0] = mapdata[idx++];
-        if (i_crs[0] == 5 && i_crs[1] == 5) {
-          console.log(i + " " + j + " " + k);
-          console.log(floatData[0]);
-        }
         this.data.set_grid_value(i, j, k, floatData[0]);
   }}}
   if (idx != mapdata.length) {
     throw Error("Index does not match data length: " + idx + " vs. "+
                 mapdata.length);
   }
-  console.log("38,8,29: " + this.data.get_grid_value(38, 8, 29));
-  if (true) {
+  if (false) {
     console.log("unit cell grid: " + this.dim);
     console.log("map origin: " + this.origin);
     console.log("map grid: " + this.grid);
@@ -246,12 +241,13 @@ function cartesian_map_data (unit_cell, map_data, center, radius) {
   var frac_max = unit_cell.fractionalize(xyz_max);
   var grid_min = map_data.frac2grid(frac_min[0], frac_min[1], frac_min[2]);
   var grid_max = map_data.frac2grid(frac_max[0], frac_max[1], frac_max[2]);
-  console.log("GRID RANGE: " + grid_min + ", " + grid_max);
+  //console.log("GRID RANGE: " + grid_min + ", " + grid_max);
   this.points = [];
   this.values = [];
-  this.nx = grid_max[0] - grid_min[0] + 1;
-  this.ny = grid_max[1] - grid_min[1] + 1;
-  this.nz = grid_max[2] - grid_min[2] + 1;
+  var nx = grid_max[0] - grid_min[0] + 1;
+  var ny = grid_max[1] - grid_min[1] + 1;
+  var nz = grid_max[2] - grid_min[2] + 1;
+  this.size = [nx, ny, nz];
   for (var k = grid_min[2]; k <= grid_max[2]; k++) {
     for (var j = grid_min[1]; j <= grid_max[1]; j++) {
       for (var i = grid_min[0]; i <= grid_max[0]; i++) {
@@ -268,7 +264,7 @@ function cartesian_map_data (unit_cell, map_data, center, radius) {
         }
         this.values.push( map_data.get_grid_value(i,j,k) );
   }}}
-  console.log("size: " + this.nx + ", " + this.ny + ", " + this.nz);
+  //console.log("size: " + nx + ", " + ny + ", " + nz);
 }
 
 //----------------------------------------------------------------------
