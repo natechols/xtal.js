@@ -5,6 +5,7 @@ var container, scene, camera, renderer, controls;
 //var keyboard = new THREEx.KeyboardState();
 var clock = new THREE.Clock();
 var maps = [];
+var models = [];
 var axes;
 var gui;
 var last_center;
@@ -91,12 +92,22 @@ function initialize_map_object (mapdata, map_name) {
   map_display.clear_mesh = function () {
     clear_mesh(map_display);
   }
-  setup_dat_gui(map_display);
+  setup_map_dat_gui(map_display);
   maps.push(map_display);
   var uc = new UnitCellBox(map.unit_cell);
   scene.add(uc);
   map_display.update_mesh(global_parameters['map_radius']);
   render_mesh(map_display);
+}
+
+function initialize_model_object (model, model_name) {
+  var model_display = new modelDisplayObject(model, model_name);
+  model_display.clear_geom = function() {
+    clear_model_geom(model_display);
+  }
+  setup_model_dat_gui(model_display);
+  models.push(model_display);
+  redraw_model(model_display);
 }
 
 function readPDBfile (evt) {
@@ -107,9 +118,7 @@ function readPDBfile (evt) {
     fr.onloadend = function() {
       var contents = this.result;
       var model = new Model(contents);
-      var lines = new Bonds(model);
-      scene.add(lines);
-      render();
+      initialize_model_object(model, file.name);
     };
     fr.readAsText(file);
   } else {
@@ -160,14 +169,16 @@ function redrawMaps (force) {
   }
 }
 
-function setup_dat_gui (map) {
+function setup_map_dat_gui (map) {
   // GUI
-  var map_gui = gui.addFolder(map.name);
-  var isVisible = map_gui.add(map.parameters, 'visible').name("Display").listen();
+  var map_gui = gui.addFolder("Map: " + map.name);
+  var isVisible = map_gui.add(map.parameters,
+    'visible').name("Display").listen();
   isVisible.onChange(function (value){
-    toggle_visibility(map, value);
+    toggle_map_visibility(map, value);
   });
-  var isoLevel = map_gui.add(map.parameters, 'isolevel' ).min(0).max(8).step(0.1).name('Contour level').listen();
+  var isoLevel = map_gui.add(map.parameters,
+    'isolevel').min(0).max(8).step(0.1).name('Contour level').listen();
   isoLevel.onChange(function (value){
     map.clear_mesh();
     map.update_isolevel(value, global_parameters['map_radius']);
@@ -194,6 +205,29 @@ function setup_dat_gui (map) {
   map_gui.open();
 }
 
+function setup_model_dat_gui (model) {
+  var model_gui = gui.addFolder("Model: " +model.name);
+  var isVisible = model_gui.add(model.parameters,
+    'visible').name("Display").listen();
+  isVisible.onChange(function (value){
+    toggle_model_visibility(model, value);
+  });
+  console.log(model.parameters['color_scheme']);
+  var colorType = model_gui.add(model.parameters, 'color_scheme',
+    ["element", "rainbow", "bfactor"]).name("Color scheme").listen();
+  colorType.onChange(function(value) {
+    redraw_model(model);
+  });
+  var carbColor = model_gui.addColor(
+    model.parameters, 'carbon_color' ).name('C atom color').listen();
+  carbColor.onChange(function(value){
+    if (model.color_scheme == "element") {
+      redraw_model(model);
+    }
+  });
+  model_gui.open();
+}
+
 function clear_mesh (map, reset_data) {
   var i = map.meshes.length - 1;
   while (i >= 0) {
@@ -208,7 +242,12 @@ function clear_mesh (map, reset_data) {
   }
 }
 
-function toggle_visibility (map, visible) {
+function clear_model_geom (model) {
+  scene.remove(model.geom);
+  model.geom = null;
+}
+
+function toggle_map_visibility (map, visible) {
   map.parameters['visible'] = visible;
   if (visible) {
     map.update_mesh(global_parameters['map_radius']);
@@ -218,9 +257,32 @@ function toggle_visibility (map, visible) {
   }
 }
 
+function toggle_model_visibility (model, visible) {
+  model.parameters['visible'] = visible;
+  if (visible) {
+    model.update_geom();
+    render_model(model);
+  } else {
+    model.clear_geom();
+  }
+}
+
+function redraw_model (model) {
+  model.clear_geom();
+  model.update_geom();
+  render_model(model);
+}
+
 function render_mesh (map) {
   for (var i = 0; i < map.meshes.length; i++) {
     scene.add(map.meshes[i]);
+  }
+  render();
+}
+
+function render_model (model) {
+  if (model.geom) {
+    scene.add(model.geom);
   }
   render();
 }

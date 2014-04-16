@@ -1,3 +1,5 @@
+// External dependencies: Three.js
+// Internal dependencies: MarchingCubes.js, xtal.js, PDB.js
 
 //----------------------------------------------------------------------
 // MAP DISPLAY
@@ -84,9 +86,64 @@ function update_map_color (map, value, suffix) {
 //----------------------------------------------------------------------
 // MODEL
 
-Bonds = function drawLines (model) {
-  var colors = {
-    "C": new THREE.Color(0xffff00),
+function modelDisplayObject (model, name) {
+  this.model = model;
+  this.name = name;
+  this.parameters = {
+    visible: true,
+    render_style: "lines",
+    color_scheme: "element",
+    carbon_color: "#ffff00",
+    hydrogens: false
+  };
+  this.geom = null; // display object (drawLines, etc.)
+  this.update_geom = function () {
+    if (this.parameters["render_style"] == "lines") {
+      this.geom = new Bonds(this.model, this.parameters["color_scheme"],
+        this.parameters["carbon_color"], this.parameters["hydrogens"]);
+    }
+  }
+  this.update_colors = function() {
+    return this.update_geom();
+  }
+}
+
+function color_by_property (values) { // generic rainbow coloring
+  var vmax = Math.max.apply(null, values);
+  var vmin = Math.min.apply(null, values);
+  vmax -= vmin;
+  if (vmax <= 0) vmax = 1;
+  var colors = [];
+  for (var i = 0; i < values.length; i++) {
+    var ratio = (values[i] - vmin) / vmax;
+    var c = new THREE.Color(0xe0e0e0);
+    var hue = (240 - (240 * ratio)) / 360;
+    c.setHSL(hue, 1.0, 0.5);
+    colors.push(c);
+  }
+  return colors;
+}
+
+function color_by_bfactor (atoms, draw_hydrogens) {
+  var bfactors = [];
+  for (var i = 0; i < atoms.length; i++) {
+    bfactors.push(atoms[i].b);
+  }
+  return color_by_property(bfactors);
+}
+
+function color_by_index (atoms, draw_hydrogens) {
+  var indices = [];
+  for (var i = 0; i < atoms.length; i++) {
+    indices.push(i);
+  }
+  return color_by_property(indices);
+}
+
+function color_by_element (atoms, carbon_color, draw_hydrogens) {
+  var colors = [];
+  var element_colors = {
+    "C": new THREE.Color(0xffff00).setHex(carbon_color.replace("#", "0x")),
     "H": new THREE.Color(0xf0f0f0),
     "N": new THREE.Color(0x4040ff),
     "O": new THREE.Color(0xff4040),
@@ -94,14 +151,48 @@ Bonds = function drawLines (model) {
     "P": new THREE.Color(0xffc040)
   };
   var default_color = new THREE.Color(0xa0a0a0);
-  var geometry = new THREE.Geometry();
-  for (var i = 0; i < model.atoms.length; i++) {
-    var atom = model.atoms[i];
-    var bonds = model.connectivity[i];
-    var color = colors[atom.element];
+  for (var i = 0; i < atoms.length; i++) {
+    var color = element_colors[atoms[i].element];
     if (! color) {
       color = default_color;
     }
+    colors.push(color);
+  }
+  return colors;
+}
+
+Bonds = function drawLines (model, color_style, carbon_color,
+    draw_hydrogens) {
+  var colors = [];
+  var visible_atoms = [];
+  if ((! draw_hydrogens) && (model.has_hydrogens)) {
+    for (var i = 0; i < atoms.length; i++) {
+      if (model.atoms[i].element != "H") {
+        visible_atoms.push(model.atoms[i]);
+      }
+    }
+  } else {
+    visible_atoms = model.atoms;
+  }
+  if ((! color_style) || (color_style == "element")) {
+    colors = color_by_element(visible_atoms, carbon_color, draw_hydrogens);
+  } else if (color_style == "bfactor") {
+    colors = color_by_bfactor(visible_atoms, draw_hydrogens);
+  } else if (color_style == "rainbow") {
+    colors = color_by_index(visible_atoms, draw_hydrogens);
+  } else {
+    console.log("Color style: " + color_style);
+  }
+  var k = 0;
+  var geometry = new THREE.Geometry();
+  for (var i = 0; i < model.atoms.length; i++) {
+    var atom = model.atoms[i];
+    if ((atom.element == "H") && (! draw_hydrogens)) {
+      continue;
+    }
+    var bonds = model.connectivity[i];
+    var color = colors[k];
+    k++;
     if (bonds.length == 0) { // nonbonded, draw star
       var vectors = [
         [-0.5, 0, 0], [0.5, 0, 0],
@@ -129,6 +220,9 @@ Bonds = function drawLines (model) {
     } else { // bonded, draw lines
       for (var j = 0; j < bonds.length; j++) {
         var other = model.atoms[bonds[j]];
+        if ((! draw_hydrogens) && (other.element == "H")) {
+          continue;
+        }
         var midpoint = atom.midpoint(other);
         geometry.vertices.push(
           new THREE.Vector3(atom.xyz[0], atom.xyz[1], atom.xyz[2]),
@@ -184,7 +278,10 @@ Axis = function drawAxes (size) {
     geometry.colors.push(colors[i/2]);
   }
 
-  var material = new THREE.LineBasicMaterial( { vertexColors: THREE.VertexColors } );
+  var material = new THREE.LineBasicMaterial( {
+    vertexColors: THREE.VertexColors,
+    linewidth: 3
+  });
   THREE.Line.call( this, geometry, material, THREE.LinePieces );
 };
 Axis.prototype=Object.create(THREE.Line.prototype);

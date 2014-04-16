@@ -1,5 +1,5 @@
 
-var max_bond_length = 1.95;
+var max_bond_length = 1.99;
 
 function Model (pdb_string) {
   this.atoms = [];
