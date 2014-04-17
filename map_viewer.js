@@ -1,7 +1,7 @@
 // MAIN
 
 // standard global variables
-var container, scene, camera, renderer, controls;
+var container, scene, camera, renderer, controls, origin;
 //var keyboard = new THREEx.KeyboardState();
 var clock = new THREE.Clock();
 var maps = [];
@@ -30,9 +30,9 @@ function init()
   renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
   container = document.getElementById( 'ThreeJS' );
   container.appendChild( renderer.domElement );
-  controls = new THREE.OrbitControls( camera, renderer.domElement );
-  controls.minDistance = 2;
-  controls.maxDistance = 200;
+  controls = new THREE.TrackballControls( camera, renderer.domElement );
+  controls.minDistance = 5;
+  controls.maxDistance = 400;
   controls.addEventListener( 'end', OnEnd );
   controls.addEventListener( 'change', OnChange );
   last_center = [ controls.target.x, controls.target.y, controls.target.z ];
@@ -40,6 +40,8 @@ function init()
   var light = new THREE.PointLight(0xffffff);
   light.position.set(0,10,0);
   scene.add(light);
+  origin = new Axis(0.5, [0,0,0], true);
+  scene.add(origin);
   redrawAxes();
 
   gui = new dat.GUI();
@@ -94,8 +96,8 @@ function initialize_map_object (mapdata, map_name) {
   }
   setup_map_dat_gui(map_display);
   maps.push(map_display);
-  var uc = new UnitCellBox(map.unit_cell);
-  scene.add(uc);
+  //var uc = new UnitCellBox(map.unit_cell);
+  //scene.add(uc);
   map_display.update_mesh(global_parameters['map_radius']);
   render_mesh(map_display);
 }
@@ -149,7 +151,8 @@ function redrawAxes () {
   if (axes) {
     scene.remove(axes);
   }
-  axes = new Axis(0.5);
+  var center = controls.target;
+  axes = new Axis(0.5, [ center.x, center.y,  center.z ], false );
   scene.add(axes);
 }
 

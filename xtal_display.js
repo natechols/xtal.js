@@ -244,21 +244,22 @@ Bonds.prototype=Object.create(THREE.Line.prototype);
 // MISC DISPLAY OBJECTS
 
 // AXES
-Axis = function drawAxes (size) {
+Axis = function drawAxes (size, xyz, color_by_axis, width) {
   size = size || 1;
+  width = width || 2;
   var geometry = new THREE.Geometry();
-  var center = controls.target;
   var vectors = [
     [-1, 0, 0], [1, 0, 0],
     [0, -1, 0], [0, 1, 0],
     [0, 0, -1], [0, 0, 1],
   ];
-  var x = center.x, y = center.y, z = center.z;
+  var x = xyz[0], y = xyz[1], z = xyz[2];
   var colors = [
     new THREE.Color( 0xff6060 ),
     new THREE.Color( 0x60ff60 ),
     new THREE.Color( 0x0060ff ),
   ];
+  var default_color = new THREE.Color(0xe0e060);
   for (var i = 0; i < 6; i += 2) {
     var x1 = x + (vectors[i][0]*size);
     var y1 = y + (vectors[i][1]*size);
@@ -272,15 +273,21 @@ Axis = function drawAxes (size) {
       new THREE.Vector3(x, y, z),
       new THREE.Vector3(x2, y2, z2)
     );
-    geometry.colors.push(colors[i/2]);
-    geometry.colors.push(colors[i/2]);
-    geometry.colors.push(colors[i/2]);
-    geometry.colors.push(colors[i/2]);
+    if (color_by_axis) {
+      geometry.colors.push(colors[i/2]);
+      geometry.colors.push(colors[i/2]);
+      geometry.colors.push(colors[i/2]);
+      geometry.colors.push(colors[i/2]);
+    } else {
+      for (var j = 0; j < 4; j++) {
+        geometry.colors.push(default_color);
+      }
+    }
   }
 
   var material = new THREE.LineBasicMaterial( {
     vertexColors: THREE.VertexColors,
-    linewidth: 3
+    linewidth: width
   });
   THREE.Line.call( this, geometry, material, THREE.LinePieces );
 };
