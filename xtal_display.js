@@ -96,11 +96,25 @@ function modelDisplayObject (model, name) {
     carbon_color: "#ffff00",
     hydrogens: false
   };
-  this.geom = null; // display object (drawLines, etc.)
+  this.geom_objects = null; // display object (drawLines, etc.)
   this.update_geom = function () {
     if (this.parameters["render_style"] == "lines") {
-      this.geom = new Bonds(this.model, this.parameters["color_scheme"],
-        this.parameters["carbon_color"], this.parameters["hydrogens"]);
+      this.geom_objects = [
+        new Bonds(this.model, this.parameters["color_scheme"],
+          this.parameters["carbon_color"], this.parameters["hydrogens"]) ];
+    } else if (this.parameters["render_style"] == "trace") {
+      this.geom_objects = [
+        new Trace(this.model, this.parameters["color_scheme"],
+          this.parameters["carbon_color"]) ];
+    } else if (this.parameters["render_style"] == "trace+ligands") {
+      this.geom_objects = [
+        new Trace(this.model, this.parameters["color_scheme"],
+          this.parameters["carbon_color"]),
+        new Bonds(this.model, this.parameters["color_scheme"],
+          this.parameters["carbon_color"], this.parameters["hydrogens"],
+          true)
+        // TODO spheres for ions
+      ];
     }
   }
   this.update_colors = function() {
@@ -108,6 +122,7 @@ function modelDisplayObject (model, name) {
   }
 }
 
+//*** COLORS ***
 function color_by_property (values) { // generic rainbow coloring
   var vmax = Math.max.apply(null, values);
   var vmin = Math.min.apply(null, values);
@@ -161,8 +176,9 @@ function color_by_element (atoms, carbon_color, draw_hydrogens) {
   return colors;
 }
 
+// BONDED REPRESENTATION
 Bonds = function drawLines (model, color_style, carbon_color,
-    draw_hydrogens) {
+    draw_hydrogens, ligands_only) {
   var colors = [];
   var visible_atoms = [];
   if ((! draw_hydrogens) && (model.has_hydrogens)) {
@@ -174,7 +190,7 @@ Bonds = function drawLines (model, color_style, carbon_color,
   } else {
     visible_atoms = model.atoms;
   }
-  if ((! color_style) || (color_style == "element")) {
+  if ((! color_style) || (color_style == "element") || ligands_only) {
     colors = color_by_element(visible_atoms, carbon_color, draw_hydrogens);
   } else if (color_style == "bfactor") {
     colors = color_by_bfactor(visible_atoms, draw_hydrogens);
@@ -183,16 +199,22 @@ Bonds = function drawLines (model, color_style, carbon_color,
   } else {
     console.log("Color style: " + color_style);
   }
+  var ligand_flags = null;
+  if (ligands_only) {
+    ligand_flags = model.extract_ligands();
+  }
   var k = 0;
   var geometry = new THREE.Geometry();
   for (var i = 0; i < model.atoms.length; i++) {
     var atom = model.atoms[i];
-    if ((atom.element == "H") && (! draw_hydrogens)) {
-      continue;
-    }
     var bonds = model.connectivity[i];
     var color = colors[k];
     k++;
+    if ((atom.element == "H") && (! draw_hydrogens)) {
+      continue;
+    } else if (ligands_only) {
+      if (! ligand_flags[i]) continue;
+    }
     if (bonds.length == 0) { // nonbonded, draw star
       var vectors = [
         [-0.5, 0, 0], [0.5, 0, 0],
@@ -222,6 +244,8 @@ Bonds = function drawLines (model, color_style, carbon_color,
         var other = model.atoms[bonds[j]];
         if ((! draw_hydrogens) && (other.element == "H")) {
           continue;
+        } else if (ligands_only) {
+          if (! ligand_flags[bonds[j]]) continue;
         }
         var midpoint = atom.midpoint(other);
         geometry.vertices.push(
@@ -239,6 +263,48 @@ Bonds = function drawLines (model, color_style, carbon_color,
   THREE.Line.call( this, geometry, material, THREE.LinePieces );
 };
 Bonds.prototype=Object.create(THREE.Line.prototype);
+
+// C-ALPHA / PHOSPHATE BACKBONE TRACE
+Trace = function drawTrace (model, color_style, carbon_color) {
+  var segments = model.extract_trace();
+  var colors = [];
+  var visible_atoms = [];
+  for (var i = 0; i < segments.length; i++) {
+    for (var j = 0; j < segments[i].length; j++) {
+      visible_atoms.push(segments[i][j]);
+    }
+  }
+  if ((! color_style) || (color_style == "element")) {
+    colors = color_by_element(visible_atoms, carbon_color, false);
+  } else if (color_style == "bfactor") {
+    colors = color_by_bfactor(visible_atoms, false);
+  } else if (color_style == "rainbow") {
+    colors = color_by_index(visible_atoms, false);
+  } else {
+    console.log("Color style: " + color_style);
+  }
+  var k = 0;
+  var geometry = new THREE.Geometry();
+  for (var i = 0; i < segments.length; i++) {
+    for (var j = 0; j < segments[i].length - 1; j++) {
+      var atom = segments[i][j];
+      var next_atom = segments[i][j+1];
+      var color = colors[k];
+      k++;
+      geometry.vertices.push(
+        new THREE.Vector3(atom.xyz[0], atom.xyz[1], atom.xyz[2]),
+        new THREE.Vector3(next_atom.xyz[0], next_atom.xyz[1],
+          next_atom.xyz[2]));
+      geometry.colors.push(color, color);
+    }
+  }
+  var material = new THREE.LineBasicMaterial({
+    vertexColors: THREE.VertexColors,
+    linewidth: 3
+  });
+  THREE.Line.call( this, geometry, material, THREE.LinePieces );
+};
+Trace.prototype=Object.create(THREE.Line.prototype);
 
 //----------------------------------------------------------------------
 // MISC DISPLAY OBJECTS

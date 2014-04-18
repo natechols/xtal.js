@@ -215,7 +215,11 @@ function setup_model_dat_gui (model) {
   isVisible.onChange(function (value){
     toggle_model_visibility(model, value);
   });
-  console.log(model.parameters['color_scheme']);
+  var repType = model_gui.add(model.parameters, "render_style",
+    ["lines", "trace", "trace+ligands"]).name("Draw as").listen();
+  repType.onChange(function(value) {
+    redraw_model(model);
+  });
   var colorType = model_gui.add(model.parameters, 'color_scheme',
     ["element", "rainbow", "bfactor"]).name("Color scheme").listen();
   colorType.onChange(function(value) {
@@ -246,8 +250,12 @@ function clear_mesh (map, reset_data) {
 }
 
 function clear_model_geom (model) {
-  scene.remove(model.geom);
-  model.geom = null;
+  if (model.geom_objects) {
+    for (var i = 0; i < model.geom_objects.length; i++) {
+      scene.remove(model.geom_objects[i]);
+    }
+  }
+  model.geom_objects = null;
 }
 
 function toggle_map_visibility (map, visible) {
@@ -284,8 +292,10 @@ function render_mesh (map) {
 }
 
 function render_model (model) {
-  if (model.geom) {
-    scene.add(model.geom);
+  if (model.geom_objects) {
+    for (var i = 0; i < model.geom_objects.length; i++) {
+      scene.add(model.geom_objects[i]);
+    }
   }
   render();
 }

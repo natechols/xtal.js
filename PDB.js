@@ -14,18 +14,28 @@ var elements = [
   "NO", "LR", "RF", "DB", "SG", "BH", "HS", "MT", "DS", "RG"
 ];
 
+var amino_acids = [
+  "ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE", "LEU",
+  "LYS", "MET", "MSE", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL"
+];
+var nucleic_acids = [
+  "DA", "DC", "DG", "DT", "A", "C", "G", "U", "rA", "rC", "rG", "rU",
+  "Ar", "Cr", "Gr", "Ur"
+];
+
 function Model (pdb_string) {
   this.atoms = [];
   this.chain_indices = [];
   this.unit_cell = null;
   this.space_group = null;
   this.has_hydrogens = false;
+  this.ligand_flags = null;
   var lines = pdb_string.split("\n");
   var chain_index = 0;
   var last_chain = null;
   for (var i = 0; i < lines.length; i++) {
     line = lines[i];
-    var rec_type = line.substr(0,6);
+    var rec_type = line.substring(0,6);
     if (rec_type == "ATOM  " || rec_type == "HETATM") {
       var new_atom = new Atom(line);
       this.atoms.push(new_atom);
@@ -36,16 +46,17 @@ function Model (pdb_string) {
         chain_index++;
       }
       this.chain_indices.push(chain_index);
+      last_chain = new_atom.chain;
     } else if (rec_type == "CRYST1") {
-      var a = parseFloat(line.substr(6, 15));
-      var b = parseFloat(line.substr(15, 24));
-      var c = parseFloat(line.substr(24, 33));
-      var alpha = parseFloat(line.substr(33, 40));
-      var beta = parseFloat(line.substr(40, 47));
-      var gamma = parseFloat(line.substr(47, 54));
-      var sg_symbol = line.substr(55, 66);
+      var a = parseFloat(line.substring(6, 15));
+      var b = parseFloat(line.substring(15, 24));
+      var c = parseFloat(line.substring(24, 33));
+      var alpha = parseFloat(line.substring(33, 40));
+      var beta = parseFloat(line.substring(40, 47));
+      var gamma = parseFloat(line.substring(47, 54));
+      var sg_symbol = line.substring(55, 66);
       this.unit_cell = new UnitCell(a, b, c, alpha, beta, gamma);
-    } else if (rec_type.substr(0, 3) == "TER") {
+    } else if (rec_type.substring(0, 3) == "TER") {
       chain_index++;
     }
   }
@@ -54,6 +65,24 @@ function Model (pdb_string) {
   }
   //this.connectivity = get_connectivity_simple(this.atoms);
   this.connectivity = get_connectivity_fast(this.atoms);
+  this.extract_trace = function () {
+    return extract_trace(this);
+  }
+  this.extract_ligands = function () {
+    if (this.ligand_flags == null) {
+      this.ligand_flags = [];
+      for (var i = 0; i < this.atoms.length; i++) {
+        var atom = this.atoms[i];
+        if ((! atom.is_water()) && (amino_acids.indexOf(atom.resname) < 0) &&
+            (nucleic_acids.indexOf(atom.resname) < 0)) {
+          this.ligand_flags.push(true);
+        } else {
+          this.ligand_flags.push(false);
+        }
+      }
+    }
+    return this.ligand_flags;
+  }
 }
 
 // 13 - 16  Atom          name          Atom name.
@@ -86,29 +115,29 @@ function Atom (pdb_line) {
     if (pdb_line.length < 66) {
       throw Error("ATOM or HETATM record is too short: " + pdb_line);
     }
-    var rec_type = line.substr(0, 6);
+    var rec_type = line.substring(0, 6);
     if (rec_type == "HETATM") {
       this.hetero = true;
     } else if (rec_type != "ATOM  ") {
       throw Error("Wrong record type: " + rec_type);
     }
-    this.name = pdb_line.substr(12,16);
-    this.altloc = pdb_line.substr(16, 17).trim();
-    this.resname = pdb_line.substr(17, 20).trim();
-    this.chain = pdb_line.substr(20, 22).trim();
-    this.resseq = pdb_line.substr(22, 26);
-    this.icode = pdb_line.substr(26, 27).trim();
-    var x = parseFloat(pdb_line.substr(30, 38));
-    var y = parseFloat(pdb_line.substr(38, 46));
-    var z = parseFloat(pdb_line.substr(46, 54));
+    this.name = pdb_line.substring(12,16);
+    this.altloc = pdb_line.substring(16, 17).trim();
+    this.resname = pdb_line.substring(17, 20).trim();
+    this.chain = pdb_line.substring(20, 22).trim();
+    this.resseq = pdb_line.substring(22, 26);
+    this.icode = pdb_line.substring(26, 27).trim();
+    var x = parseFloat(pdb_line.substring(30, 38));
+    var y = parseFloat(pdb_line.substring(38, 46));
+    var z = parseFloat(pdb_line.substring(46, 54));
     this.xyz = [ x, y, z ];
-    this.occ = parseFloat(pdb_line.substr(54, 60));
-    this.b = parseFloat(pdb_line.substr(60, 66));
+    this.occ = parseFloat(pdb_line.substring(54, 60));
+    this.b = parseFloat(pdb_line.substring(60, 66));
     if (pdb_line.length >= 78) {
-      this.element = pdb_line.substr(76, 78).trim();
+      this.element = pdb_line.substring(76, 78).trim();
     }
     if (pdb_line.length >= 80) {
-      this.charge = pdb_line.substr(78, 80).trim();
+      this.charge = pdb_line.substring(78, 80).trim();
     }
   }
   this.distance = function (other) {
@@ -267,4 +296,47 @@ function get_connectivity_fast (atoms) {
     }
   }
   return connectivity;
+}
+
+function extract_trace (model) {
+  var segments = [];
+  var current_segment = [];
+  var last_chain_index = null;
+  var last_atom_index = null;
+  for (var i = 0; i < model.atoms.length; i++) {
+    var atom = model.atoms[i];
+    var chain_index = model.chain_indices[i];
+    var start_new = false;
+    if ((atom.name == " CA ") || (atom.name == " P  ")) {
+      if ((last_atom_index != null) && (last_chain_index == chain_index)) {
+        var dxyz = atom.distance(model.atoms[last_atom_index]);
+        if (((atom.name == " CA ") && (dxyz <= 5.5)) ||
+            ((atom.name == " P  ") && (dxyz < 7.5))) {
+          current_segment.push(atom);
+          last_chain_index = chain_index;
+          last_atom_index = i;
+        } else {
+          start_new = true;
+        }
+      } else {
+        start_new = true;
+      }
+      if (start_new) {
+        current_segment = [atom];
+        segments.push(current_segment);
+        last_chain_index = chain_index;
+        last_atom_index = i;
+      }
+    }
+  }
+  //console.log(segments.length + " segments in initial run");
+  var filtered = [];
+  for (var i = 0; i < segments.length; i++) {
+    if (segments[i].length > 2) {
+      //console.log("segment: " + segments[i].length);
+      filtered.push(segments[i]);
+    }
+  }
+  //console.log(segments.length + " segments extracted");
+  return filtered;
 }
