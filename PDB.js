@@ -13,10 +13,11 @@ var elements = [
   "PA", "U", "NP", "PU", "AM", "CM", "BK", "CF", "ES", "FM", "MD",
   "NO", "LR", "RF", "DB", "SG", "BH", "HS", "MT", "DS", "RG"
 ];
+var non_ionic = ["H", "B", "C", "N", "O", "SI", "S", "P", "SE"];
 
 var amino_acids = [
   "ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE", "LEU",
-  "LYS", "MET", "MSE", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL"
+  "LYS", "MET", "MSE", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL", "UNK"
 ];
 var nucleic_acids = [
   "DA", "DC", "DG", "DT", "A", "C", "G", "U", "rA", "rC", "rG", "rU",
@@ -134,7 +135,7 @@ function Atom (pdb_line) {
     this.occ = parseFloat(pdb_line.substring(54, 60));
     this.b = parseFloat(pdb_line.substring(60, 66));
     if (pdb_line.length >= 78) {
-      this.element = pdb_line.substring(76, 78).trim();
+      this.element = pdb_line.substring(76, 78).trim().toUpperCase();
     }
     if (pdb_line.length >= 80) {
       this.charge = pdb_line.substring(78, 80).trim();

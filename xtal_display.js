@@ -158,12 +158,18 @@ function color_by_index (atoms, draw_hydrogens) {
 function color_by_element (atoms, carbon_color, draw_hydrogens) {
   var colors = [];
   var element_colors = {
-    "C": new THREE.Color(0xffff00).setHex(carbon_color.replace("#", "0x")),
     "H": new THREE.Color(0xf0f0f0),
+    "C": new THREE.Color(0xffff00).setHex(carbon_color.replace("#", "0x")),
     "N": new THREE.Color(0x4040ff),
     "O": new THREE.Color(0xff4040),
+    "MG": new THREE.Color(0xc0c0c0),
+    "P": new THREE.Color(0xffc040),
     "S": new THREE.Color(0x40ff40),
-    "P": new THREE.Color(0xffc040)
+    "CL": new THREE.Color(0xa0ff60),
+    "CA": new THREE.Color(0xffffff),
+    "MN": new THREE.Color(0xff90c0),
+    "FE": new THREE.Color(0xa03000),
+    "NI": new THREE.Color(0x00ff80)
   };
   var default_color = new THREE.Color(0xa0a0a0);
   for (var i = 0; i < atoms.length; i++) {
