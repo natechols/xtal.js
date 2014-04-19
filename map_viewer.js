@@ -1,6 +1,7 @@
 // MAIN
 
 // standard global variables
+var orthographic = false;
 var container, scene, camera, renderer, controls, origin;
 //var keyboard = new THREEx.KeyboardState();
 var clock = new THREE.Clock();
@@ -13,12 +14,17 @@ var global_parameters = {
   map_radius: 10.0
 };
 
-function init()
-{
+function init_3d() {
   scene = new THREE.Scene();
   var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
-  var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 5.0, FAR = 1000;
-  camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
+  var ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT;
+  if (orthographic) {
+    var NEAR = 5.0, FAR = 100;
+    camera = new THREE.OrthographicCamera(-50, 50, -50 / ASPECT, 50 / ASPECT, NEAR, FAR);
+  } else {
+    var VIEW_ANGLE = 45, NEAR = 5.0, FAR = 1000;
+    camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
+  }
   scene.add(camera);
   scene.fog = new THREE.Fog(0x000000, 60, 100);
   camera.position.set(20,20,60);
@@ -28,6 +34,10 @@ function init()
   else
     renderer = new THREE.CanvasRenderer();
   renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+  renderer.domElement.style.position = "absolute";
+  renderer.domElement.style.top = "0px";
+  renderer.domElement.style.left = "0px";
+
   container = document.getElementById( 'ThreeJS' );
   container.appendChild( renderer.domElement );
   controls = new THREE.TrackballControls( camera, renderer.domElement );
@@ -50,6 +60,7 @@ function init()
   {   redrawMaps(true); });
   gui.open();
 
+  window.addEventListener( 'resize', onWindowResize, false );
 }
 
 function animate()
@@ -126,25 +137,6 @@ function readPDBfile (evt) {
   } else {
     console.log("No file!");
   }
-}
-
-// EVENTS
-function OnChange () {
-  var cx = camera.position.x, cy = camera.position.y, cz = camera.position.z;
-  var ox = controls.target.x, oy = controls.target.y, oz = controls.target.z;
-  var dxyz = Math.sqrt(Math.pow(cx-ox, 2) + Math.pow(cy-oy, 2) + Math.pow(cz-oz, 2));
-  scene.fog.near = dxyz - 1;
-  scene.fog.far = Math.max(dxyz * 1.2, dxyz+10);
-  camera.near = dxyz * 0.8;
-  camera.far = dxyz * 2;
-  camera.updateProjectionMatrix();
-  redrawAxes();
-  //redrawMaps();
-}
-
-function OnEnd () {
-  redrawAxes();
-  redrawMaps();
 }
 
 function redrawAxes () {
@@ -298,4 +290,96 @@ function render_model (model) {
     }
   }
   render();
+}
+
+// EVENTS
+function onWindowResize( event ) {
+  SCREEN_WIDTH = window.innerWidth;
+  SCREEN_HEIGHT = window.innerHeight;
+  camera.aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
+  camera.updateProjectionMatrix();
+  renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
+  //composer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
+}
+
+function OnChange () {
+  var cx = camera.position.x, cy = camera.position.y, cz = camera.position.z;
+  var ox = controls.target.x, oy = controls.target.y, oz = controls.target.z;
+  var dxyz = Math.sqrt(Math.pow(cx-ox, 2) + Math.pow(cy-oy, 2) + Math.pow(cz-oz, 2));
+  scene.fog.near = dxyz - 1;
+  scene.fog.far = Math.max(dxyz * 1.2, dxyz+10);
+  camera.near = dxyz * 0.8;
+  camera.far = dxyz * 2;
+  camera.updateProjectionMatrix();
+  redrawAxes();
+  //redrawMaps();
+}
+
+function OnEnd () {
+  redrawAxes();
+  redrawMaps();
+}
+
+//----------------------------------------------------------------------
+// JQUERY GUI STUFF
+
+// http://www.fam.tuwien.ac.at/~schamane/_/blog:110802_vertical_sliding_panel_with_auto-hide
+function expandPanel() {
+//  $('#loadControlsHandle').toggle(false);
+  $('#loadControls').slideDown('fast');
+  /* hide the panel also on any click */
+  $('html').click(collapsePanel);
+};
+
+function collapsePanel() {
+//  $('#loadControlsHandle').toggle(true);
+  $('#loadControls').slideUp('fast');
+  $('html').unbind('click');
+};
+
+function expandFeatures() {
+  //$("#featureHeader").toggle(false);
+  $("#featureList").slideDown('fast');
+  $('html').click(collapseFeatures);
+};
+
+function collapseFeatures() {
+  //$("#featureHeader").toggle(true);
+  $("#featureList").slideUp('fast');
+};
+
+function init_gui () {
+  $(function(){
+      var width = $("#controlBox").width();
+      $("#loadControlsMargin").width(width);
+      //$("#loadControls").width(width);
+  });
+  
+  $(document).ready(function() {
+    /* expandPanel on click, too - good for mobile devices without mouse */
+    $('#loadControlsHandle').click(expandPanel);
+    /* show panel on mouse hover */
+    $('#loadControlsHandle').hoverIntent({
+      over: expandPanel,
+      timeout: 10,
+      out: function() {return true;}
+    });
+    /* hide panel when leaving panel */
+    $('#loadControls').hoverIntent({
+      over: function() {return true;},
+      timeout: 10,
+      out: collapsePanel
+    });
+    $('#featureHandle').click(expandFeatures);
+    $('#featureHandle').hoverIntent({
+      over: expandFeatures,
+      timeout: 10,
+      out: function() {return true;}
+    });
+    $('#featureList').hoverIntent({
+      over: function() { return true;},
+      timeout: 10,
+      out: collapseFeatures
+    });
+  });
 }
