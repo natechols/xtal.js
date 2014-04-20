@@ -55,9 +55,11 @@ function init_3d() {
   redrawAxes();
 
   gui = new dat.GUI();
-  var mapRadius = gui.add( global_parameters, 'map_radius' ).min(5).max(20).step(1).name('Map radius').listen();
-  mapRadius.onChange(function (value)
-  {   redrawMaps(true); });
+  var mapRadius = gui.add( global_parameters,
+    'map_radius' ).min(5).max(20).step(1).name('Map radius').listen();
+  mapRadius.onChange(function (value){
+    redrawMaps(true);
+  });
   gui.open();
 
   window.addEventListener( 'resize', onWindowResize, false );
@@ -121,6 +123,8 @@ function initialize_model_object (model, model_name) {
   setup_model_dat_gui(model_display);
   models.push(model_display);
   redraw_model(model_display);
+  //feature_list = model.extract_interesting_residues();
+  //loadFeatures(feature_list);
 }
 
 function readPDBfile (evt) {
@@ -328,19 +332,19 @@ function expandPanel() {
 //  $('#loadControlsHandle').toggle(false);
   $('#loadControls').slideDown('fast');
   /* hide the panel also on any click */
-  $('html').click(collapsePanel);
+  $('#loadControlsHandle').click(collapsePanel);
 };
 
 function collapsePanel() {
 //  $('#loadControlsHandle').toggle(true);
   $('#loadControls').slideUp('fast');
-  $('html').unbind('click');
+  $('#loadControlsHandle').unbind('click');
 };
 
 function expandFeatures() {
   //$("#featureHeader").toggle(false);
   $("#featureList").slideDown('fast');
-  $('html').click(collapseFeatures);
+  $('#featureHandle').click(collapseFeatures);
 };
 
 function collapseFeatures() {
@@ -382,4 +386,68 @@ function init_gui () {
       out: collapseFeatures
     });
   });
+}
+
+function loadFeatures (features) {
+  $("#featureList").empty();
+  console.log("Adding " + features.length + " features");
+  for (var i = 0; i < features.length; i++) {
+    var inner = $("<div/>", {
+      id:"feature"+i,
+      class:"featureItem"}).text(features[i][0]);
+    var outer = $("<div/>", {
+        id:"featuresMargin",
+        class:"controlMargin" }).text('');
+    outer.append(inner);
+    outer.appendTo("#featureList");
+    inner.data("Data",{
+        label: features[i][0],
+        xyz: features[i][1]
+      });
+    inner.click(zoomXYZ);
+  }
+  //$("featureList").html();
+  expandFeatures();
+}
+
+function zoomXYZ (evt) {
+  var data = $(this).data("Data");
+  controls.target.x = data.xyz[0];
+  controls.target.y = data.xyz[1];
+  controls.target.z = data.xyz[2];
+  camera.position.x = data.xyz[0];
+  camera.position.y = data.xyz[1];
+  camera.position.z = data.xyz[2] + 20;
+  camera.lookAt(data.xyz);
+  controls.update();
+  OnChange();
+}
+
+function loadFromPDB (evt) {
+  var pdb_id = $("#pdbIdInput").val();
+  console.log("HELLO");
+  console.log(pdb_id);
+  if (pdb_id.length != 4) {
+    $("The string '" + pdb_id + "' is not a valid PDB ID.").dialog({
+      modal: true,
+      buttons: {
+        Ok: function() {
+          $( this ).dialog( "close" );
+        }
+      }
+    });
+  }
+  var req = new XMLHttpRequest();
+  req.open('GET', 'http://www.rcsb.org/pdb/files/' + pdb_id + ".pdb", true);
+  req.onreadystatechange = function (aEvt) {
+    if (req.readyState == 4) {
+      if(req.status == 200) {
+        var model = new Model(req.responseText);
+        initialize_model_object(model, pdb_id);
+      } else {
+        console.log("Error fetching " + pdb_id);
+      }
+    }
+  };
+  req.send(null);
 }

@@ -84,6 +84,41 @@ function Model (pdb_string) {
     }
     return this.ligand_flags;
   }
+  this.extract_interesting_residues = function () {
+    return extract_interesting_residues(this);
+  }
+  this.update_atoms = function (other) {
+    this.atoms = other.atoms;
+    this.chain_indices = other.chain_indices;
+    this.connectivity = other.connectivity;
+    this.has_hydrogens = other.has_hydrogens;
+    this.ligand_flags = null;
+    return this;
+  }
+  this.get_center_and_size = function () {
+    var xsum = 0, ysum = 0, zsum = 0, n_atoms = this.atoms.length;
+    var xmax = -99999, xmin = 99999;
+    var ymax = -99999, ymin = 99999;
+    var zmax = -99999, zmin = 99999;
+    for (var i = 0; i < n_atoms; i++) {
+      var x = this.atoms[i].xyz[0], y = this.atoms[i].xyz[1],
+          z = this.atoms[i].xyz[2];
+      xsum += x;
+      ysum += y;
+      zsum += z;
+      if (x < xmin) xmin = x;
+      if (x > xmax) xmax = x;
+      if (y < ymin) ymin = y;
+      if (y > xmax) ymax = y;
+      if (z < zmin) zmin = z;
+      if (z > zmax) zmax = z;
+    }
+    var xrange = Math.abs(xmax - xmin);
+    var yrange = Math.abs(ymay - ymin);
+    var zrange = Math.abs(zmaz - zmin);
+    return [ [xsum/n_atoms, ysum/n_atoms, zsum/n_atoms],
+             Math.max(xrange, yrange, zrange) ];
+  }
 }
 
 // 13 - 16  Atom          name          Atom name.
@@ -158,6 +193,14 @@ function Atom (pdb_line) {
   }
   this.is_water = function () {
     return this.resname == "HOH";
+  }
+  this.is_same_residue = function (other, ignore_altloc) {
+    if ((other.resseq != this.resseq) || (other.icode != this.icode) ||
+        (other.chain != this.chain) || (other.resname != this.resname) ||
+        ((! ignore_altloc) && (other.altloc != this.altloc))) {
+      return false;
+    }
+    return true;
   }
   this.is_bonded_to = function (other) {
     var dxyz = this.distance(other);
@@ -340,4 +383,49 @@ function extract_trace (model) {
   }
   //console.log(segments.length + " segments extracted");
   return filtered;
+}
+
+function extract_interesting_residues (model) {
+  var residues = [];
+  var current_atoms = null;
+  var last_atom = null;
+  for (var i = 0; i < model.atoms.length; i++) {
+    var atom = model.atoms[i];
+    if ((atom.resname != "HOH") &&
+        (amino_acids.indexOf(atom.resname) < 0) &&
+        (nucleic_acids.indexOf(atom.resname) < 0)) {
+      if ((! last_atom) || (! atom.is_same_residue(last_atom, true))) {
+        current_atoms = [ atom ];
+        residues.push(current_atoms);
+      } else {
+        current_atoms.push(atom);
+      }
+      last_atom = atom;
+    }
+  }
+  var features = [];
+  for (var i = 0; i < residues.length; i++) {
+    if (residues[i].length == 0) {
+      throw Error("Empty atom list");
+    }
+    var atom = residues[i][0];
+    var feature_type = "ligand";
+    if ((residues[i].length == 1) && (elements.indexOf(atom.resname) >= 0)) {
+      feature_type = "ion";
+    }
+    var feature_name = sprintf("%3s %2s %4d%1s", atom.resname, atom.chain,
+      atom.resseq, atom.icode);
+    var xsum = 0, ysum = 0, zsum = 0;
+    for (var j = 0; j < residues[i].length; j++) {
+      var atom = residues[i][j];
+      xsum += atom.xyz[0];
+      ysum += atom.xyz[1];
+      zsum += atom.xyz[2];
+    }
+    var xmean = xsum /residues[i].length;
+    var ymean = ysum /residues[i].length;
+    var zmean = zsum /residues[i].length;
+    features.push([ feature_type+": "+feature_name, [xmean, ymean, zmean] ]);
+  }
+  return features;
 }
