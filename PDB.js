@@ -114,8 +114,8 @@ function Model (pdb_string) {
       if (z > zmax) zmax = z;
     }
     var xrange = Math.abs(xmax - xmin);
-    var yrange = Math.abs(ymay - ymin);
-    var zrange = Math.abs(zmaz - zmin);
+    var yrange = Math.abs(ymax - ymin);
+    var zrange = Math.abs(zmax - zmin);
     return [ [xsum/n_atoms, ysum/n_atoms, zsum/n_atoms],
              Math.max(xrange, yrange, zrange) ];
   }
@@ -202,7 +202,15 @@ function Atom (pdb_line) {
     }
     return true;
   }
+  this.is_same_conformer = function (other) {
+    if ((this.altloc == "") || (other.altloc == "") ||
+        (this.altloc == other.altloc)) {
+      return true;
+    }
+    return false;
+  }
   this.is_bonded_to = function (other) {
+    if (! this.is_same_conformer(other)) return false;
     var dxyz = this.distance(other);
     if (dxyz <= max_bond_length) {
       return true;
@@ -351,6 +359,7 @@ function extract_trace (model) {
     var atom = model.atoms[i];
     var chain_index = model.chain_indices[i];
     var start_new = false;
+    if ((atom.altloc != "") && (atom.altloc != "A")) continue;
     if ((atom.name == " CA ") || (atom.name == " P  ")) {
       if ((last_atom_index != null) && (last_chain_index == chain_index)) {
         var dxyz = atom.distance(model.atoms[last_atom_index]);
