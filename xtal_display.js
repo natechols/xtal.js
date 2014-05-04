@@ -188,7 +188,7 @@ Bonds = function drawLines (model, color_style, carbon_color,
   var colors = [];
   var visible_atoms = [];
   if ((! draw_hydrogens) && (model.has_hydrogens)) {
-    for (var i = 0; i < atoms.length; i++) {
+    for (var i = 0; i < model.atoms.length; i++) {
       if (model.atoms[i].element != "H") {
         visible_atoms.push(model.atoms[i]);
       }
@@ -215,10 +215,11 @@ Bonds = function drawLines (model, color_style, carbon_color,
     var atom = model.atoms[i];
     var bonds = model.connectivity[i];
     var color = colors[k];
-    k++;
     if ((atom.element == "H") && (! draw_hydrogens)) {
       continue;
-    } else if (ligands_only) {
+    }
+    k++;
+    if (ligands_only) {
       if (! ligand_flags[i]) continue;
     }
     if (bonds.length == 0) { // nonbonded, draw star

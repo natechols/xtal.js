@@ -11,7 +11,8 @@ var axes;
 var gui;
 var last_center;
 var global_parameters = {
-  map_radius: 10.0
+  map_radius: 10.0,
+  auto_zoom: true
 };
 
 function init_3d() {
@@ -123,6 +124,10 @@ function initialize_model_object (model, model_name) {
   setup_model_dat_gui(model_display);
   models.push(model_display);
   redraw_model(model_display);
+  if (global_parameters['auto_zoom']) {
+    center_and_size = model.get_center_and_size();
+    recenter(center_and_size[0]);
+  }
   //feature_list = model.extract_interesting_residues();
   //loadFeatures(feature_list);
 }
@@ -410,17 +415,21 @@ function loadFeatures (features) {
   expandFeatures();
 }
 
+function recenter (xyz) {
+  controls.target.x = xyz[0];
+  controls.target.y = xyz[1];
+  controls.target.z = xyz[2];
+  camera.lookAt(xyz);
+  controls.update();
+  OnChange();
+}
+
 function zoomXYZ (evt) {
   var data = $(this).data("Data");
-  controls.target.x = data.xyz[0];
-  controls.target.y = data.xyz[1];
-  controls.target.z = data.xyz[2];
   camera.position.x = data.xyz[0];
   camera.position.y = data.xyz[1];
   camera.position.z = data.xyz[2] + 20;
-  camera.lookAt(data.xyz);
-  controls.update();
-  OnChange();
+  recenter(data.xyz);
 }
 
 function loadFromPDB (evt) {
@@ -446,6 +455,54 @@ function loadFromPDB (evt) {
         initialize_model_object(model, pdb_id);
       } else {
         console.log("Error fetching " + pdb_id);
+      }
+    }
+  };
+  req.send(null);
+}
+
+function requestFromServer (evt) {
+  var pdb_id = $("#pdbIdInput").val();
+  console.log("HELLO");
+  console.log(pdb_id);
+  if (pdb_id.length != 4) {
+    $("The string '" + pdb_id + "' is not a valid PDB ID.").dialog({
+      modal: true,
+      buttons: {
+        Ok: function() {
+          $( this ).dialog( "close" );
+        }
+      }
+    });
+  }
+  var req1 = new XMLHttpRequest();
+  req1.open('GET', 'http://localhost:8080/' + pdb_id, true);
+  req1.onreadystatechange = function (aEvt) {
+    if (req1.readyState == 4) {
+      var response = jQuery.parseJSON(req1.responseText);
+      if (response.error) {
+        throw Error(response.error);
+      }
+      loadPDBFromServer(response.pdb_file, pdb_id);
+    } else {
+      console.log(req1.readyState);
+    }
+  };
+  req1.send(null);
+  return;
+}
+
+function loadPDBFromServer (pdb_file, model_name) {
+  var req = new XMLHttpRequest();
+  console.log(pdb_file);
+  req.open('GET', 'http://localhost:8080' + pdb_file, true);
+  req.onreadystatechange = function (aEvt) {
+    if (req.readyState == 4) {
+      if(req.status == 200) {
+        var model = new Model(req.responseText);
+        initialize_model_object(model, model_name);
+      } else {
+        console.log("Error fetching " + pdb_file);
       }
     }
   };

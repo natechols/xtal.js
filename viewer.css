@@ -1,0 +1,51 @@
+
+div.controlBox {
+  vertical-align: top;
+  text-align: center;
+  font-size: 9.5px;
+  font-family: Lucida Grande, sans-serif;
+  color: white;
+  background-color:#202020;
+}
+
+div.controlMargin {
+  padding: 0px;
+  border: 1px solid;
+  border-color: #606060;
+}
+
+div.controlHeader {
+  padding: 5px;
+}
+
+div.controlItem {
+  padding: 5px;
+}
+
+div.popUp {
+  text-align: left;
+  display: none;
+}
+
+#uploadBox {
+  width: 300px;
+  position:fixed;
+  right:0;
+  bottom:0px;
+}
+
+#featureBox {
+  width: 256px;
+  position: fixed;
+  left:0;
+  bottom:0px;
+}
+
+div.featureItem {
+  padding: 5px;
+  text-align: center;
+}
+
+div.featureItem:hover {
+  background-color: #404040;
+}

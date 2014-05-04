@@ -1,0 +1,56 @@
+
+body {
+  background-color: #e0e0e0;
+  font-family: Futura, Verdana, Arial, Helvetica, sans-serif;
+  font-size: 11pt;
+}
+
+select {
+  font-family: Futura, Verdana, Arial, Helvetica, sans-serif;
+  font-size: 10pt;
+}
+
+div.controls {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+div.control-block {
+  display: table-row;
+}
+
+div.control-item {
+  display: table-cell;
+  padding: 2px;
+}
+
+div.loggraph {
+  padding: 5px;
+  width: 800px;
+  height: 600px;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+div.loggraph-display {
+  background-color: white;
+}
+
+/* D3 stuff */
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+.legend {
+  font-size: 9pt;
+  /*background-color: #f0f0f0;*/
+}
