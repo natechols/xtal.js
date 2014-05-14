@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Electron density viewer</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="viewer.css">
+</head>
+<body>
+
+<!-- third-party dependencies -->
+<script src="js/three.min.js"></script>
+<script src="js/Detector.js"></script>
+<script src="js/TrackballControls.js"></script>
+<script src="js/DAT.GUI.min.js"></script>
+<script src="js/jquery-2.1.0.min.js"></script>
+<script src="js/jquery-ui-1.10.4.min.js"></script>
+<script src="js/hoverIntent.min.js"></script>
+<script src="js/sprintf.js"></script>
+
+<!-- app-specific code -->
+<script src="xtal.js"></script>
+<script src="PDB.js"></script>
+<script src="MarchingCubes.js"></script>
+<script src="xtal_display.js"></script>
+<script src="map_viewer.js"></script>
+
+<div id="ThreeJS" style="position: absolute; left:0px; top:0px;"></div>
+
+<div class="controlBox" id="featureBox">
+  <div class="controlMargin" id="featuresMargin">
+    <div class="controlHeader" id="featureHandle">Important features</div>
+  </div>
+  <div class="popUp" id="featureList">
+  </div>
+</div>
+
+<div class="controlBox" id="uploadBox">
+  <div class="controlMargin" id="loadControlsMargin">
+    <div class="controlHeader" id="loadControlsHandle">Input files</div>
+  </div>
+  <div class="popUp" id="loadControls">
+    <div class="controlMargin" id="loadControlsMargin">
+      <div class="controlItem"id="fileUpload">
+        Load map file: <input type="file" id="mapInput"/></div>
+    </div>
+    <div class="controlMargin" id="loadControlsMargin">
+      <div class="controlItem" id="pdbUpload">
+        Load PDB file: <input type="file" id="pdbInput"/></div>
+    </div>
+    <div class="controlMargin" id="loadControlsMargin">
+      <div class="controlItem" id="pdbFetch">
+        <form action="javascript:loadFromPDB();" id="pdbIdFetch">
+        Load PDB ID: <input type="text" id="pdbIdInput" style="width:50px;"/>
+        <input type="submit" style="display:none"/>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById("mapInput").addEventListener('change', readCCP4Map, false);
+document.getElementById("pdbInput").addEventListener('change', readPDBfile, false);
+//document.getElementById("pdbIdFetch").addEventListener('submit', loadFromPDB, false);
+
+init_gui();
+init_3d();
+animate();
+</script>
+
+</body>
+</html>
