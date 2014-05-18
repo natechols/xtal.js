@@ -28,26 +28,27 @@
 <div id="ThreeJS" style="position: absolute; left:0px; top:0px;"></div>
 
 <div class="controlBox" id="featureBox">
+  <div id="featuresBoxInner">
   <div class="controlMargin" id="featuresMargin">
     <div class="controlHeader" id="featureHandle">Important features</div>
   </div>
   <div class="popUp" id="featureList">
   </div>
+  </div>
 </div>
 
-<div class="controlBox" id="loadBox">
-  <div class="controlMargin" id="loadControlsMargin">
-    <div class="controlHeader" id="loadControlsHandle">Load structure</div>
-  </div>
-  <div class="popUp" id="loadControls">
-    <div class="controlMargin" id="loadControlsMargin">
-      <div class="controlItem" id="pdbFetch">
-        <form action="javascript:requestFromServer();" id="pdbIdFetch">
-        Load PDB ID: <input type="text" id="pdbIdInput" style="width:50px;"/>
-        <input type="submit" style="display:none"/>
-        </form>
-      </div>
+<div class="centeredControls" id="loadControls">
+    <div class="controlItem" id="pdbFetch">
+      <form action="javascript:requestFromServer();" id="pdbIdFetch">
+      Load PDB ID: <input type="text" id="pdbIdInput" style="width:50px;"/>
+      <input type="submit" style="display:none"/>
+      </form>
     </div>
+</div>
+
+<div class="controlButton" id="loadControlsButton">
+  <div class="controlMargin" id="loadControlsBtnMargin">
+    <div class="controlItem" id="loadControlsShow">Load structure...</div>
   </div>
 </div>
 
@@ -63,11 +64,15 @@ function getQueryPDB(variable) {
     var pair = vars[i].split("=");
     if (pair[0] == "pdb_id") {
       requestPDB(pair[1]);
+      return true;
     }
   }
+  return false;
 }
 
-getQueryPDB();
+if (! getQueryPDB()) {
+  expandPanel();
+}
 </script>
 
 </body>
