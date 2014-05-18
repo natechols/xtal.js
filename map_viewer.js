@@ -55,15 +55,7 @@ function init_3d() {
   origin = new Axis(0.5, [0,0,0], true);
   scene.add(origin);
   redrawAxes();
-
-  gui = new dat.GUI();
-  var mapRadius = gui.add( global_parameters,
-    'map_radius' ).min(5).max(20).step(1).name('Map radius').listen();
-  mapRadius.onChange(function (value){
-    redrawMaps(true);
-  });
-  gui.open();
-
+  create_gui();
   window.addEventListener( 'resize', onWindowResize, false );
 }
 
@@ -84,11 +76,21 @@ function render()
   renderer.render( scene, camera );
 }
 
+function create_gui () {
+  gui = new dat.GUI();
+  var mapRadius = gui.add( global_parameters,
+    'map_radius' ).min(5).max(20).step(1).name('Map radius').listen();
+  mapRadius.onChange(function (value){
+    redrawMaps(true);
+  });
+  gui.open();
+}
+
 function reset_viewer () {
-  for (var i = 0; i < gui_folders.length; i++) {
-    gui.remove(gui_folders[i]);
-    delete gui_folders[i];
+  if (gui) {
+    gui.destroy();
   }
+  create_gui();
   for (var i = 0; i < maps.length; i++) {
     maps[i].clear_mesh(true);
     delete maps[i];
@@ -97,6 +99,9 @@ function reset_viewer () {
     clear_model_geom(models[i]);
     delete models[i];
   }
+  gui_folders = [];
+  maps = [];
+  models = []
   camera.position.set(20,20,60);
   camera.lookAt(scene.position);
   controls.update();
@@ -121,13 +126,19 @@ function readCCP4Map(evt) {
   }
 }
 
-function initialize_map_object (mapdata, map_name, diff_map_flag) {
+function initialize_map_object (mapdata, map_name, diff_map_flag,
+    anom_map_flag) {
   var map = new ccp4_map(mapdata);
   if (! diff_map_flag) {
     var diff_map_flag = ((map_name == "mFo-DFc") ||
       (map_name.indexOf("_mFo-DFc") != -1)); // XXX HACK
   }
-  var map_display = new mapDisplayObject(map, map_name, diff_map_flag);
+  if (! anom_map_flag) {
+    var anom_map_flag = ((map_name == "anom") ||
+      (map_name.indexOf("_anom") != -1));
+  }
+  var map_display = new mapDisplayObject(map, map_name, diff_map_flag,
+    anom_map_flag);
   map_display.clear_mesh = function () {
     clear_mesh(map_display);
   }
@@ -354,92 +365,6 @@ function OnEnd () {
   redrawMaps();
 }
 
-//----------------------------------------------------------------------
-// JQUERY GUI STUFF
-
-// http://www.fam.tuwien.ac.at/~schamane/_/blog:110802_vertical_sliding_panel_with_auto-hide
-function expandPanel() {
-//  $('#loadControlsHandle').toggle(false);
-  $('#loadControls').slideDown('fast');
-  /* hide the panel also on any click */
-  $('#loadControlsHandle').click(collapsePanel);
-};
-
-function collapsePanel() {
-//  $('#loadControlsHandle').toggle(true);
-  $('#loadControls').slideUp('fast');
-  $('#loadControlsHandle').unbind('click');
-};
-
-function expandFeatures() {
-  //$("#featureHeader").toggle(false);
-  $("#featureList").slideDown('fast');
-  $('#featureHandle').click(collapseFeatures);
-};
-
-function collapseFeatures() {
-  //$("#featureHeader").toggle(true);
-  $("#featureList").slideUp('fast');
-};
-
-function init_gui () {
-  $(function(){
-      var width = $("#controlBox").width();
-      $("#loadControlsMargin").width(width);
-      //$("#loadControls").width(width);
-  });
-  
-  $(document).ready(function() {
-    /* expandPanel on click, too - good for mobile devices without mouse */
-    $('#loadControlsHandle').click(expandPanel);
-    /* show panel on mouse hover */
-    $('#loadControlsHandle').hoverIntent({
-      over: expandPanel,
-      timeout: 10,
-      out: function() {return true;}
-    });
-    /* hide panel when leaving panel */
-    $('#loadControls').hoverIntent({
-      over: function() {return true;},
-      timeout: 10,
-      out: collapsePanel
-    });
-    $('#featureHandle').click(expandFeatures);
-    $('#featureHandle').hoverIntent({
-      over: expandFeatures,
-      timeout: 10,
-      out: function() {return true;}
-    });
-    $('#featureList').hoverIntent({
-      over: function() { return true;},
-      timeout: 10,
-      out: collapseFeatures
-    });
-  });
-}
-
-function loadFeatures (features) {
-  $("#featureList").empty();
-  console.log("Adding " + features.length + " features");
-  for (var i = 0; i < features.length; i++) {
-    var inner = $("<div/>", {
-      id:"feature"+i,
-      class:"featureItem"}).text(features[i][0]);
-    var outer = $("<div/>", {
-        id:"featuresMargin",
-        class:"controlMargin" }).text('');
-    outer.append(inner);
-    outer.appendTo("#featureList");
-    inner.data("Data",{
-        label: features[i][0],
-        xyz: features[i][1]
-      });
-    inner.click(zoomXYZ);
-  }
-  //$("featureList").html();
-  expandFeatures();
-}
-
 function recenter (xyz) {
   controls.target.x = xyz[0];
   controls.target.y = xyz[1];
@@ -458,10 +383,84 @@ function zoomXYZ (evt) {
   recenter(data.xyz);
 }
 
+//----------------------------------------------------------------------
+// JQUERY GUI STUFF
+
+function expandPanel() {
+  $('#loadControls').fadeIn('fast');
+  $('#loadControlsButton').click(collapsePanel);
+  $('#loadControlsShow').text("Hide controls");
+};
+
+function collapsePanel() {
+//  $('#loadControlsHandle').toggle(true);
+  $('#loadControls').fadeOut('fast');
+  $('#loadControlsButton').unbind('click');
+  $('#loadControlsButton').click(expandPanel);
+  $('#loadControlsShow').text("Load structure...");
+};
+
+function expandFeatures() {
+  //$("#featureHeader").toggle(false);
+  $("#featureList").slideDown('fast');
+  $('#featureHandle').click(collapseFeatures);
+};
+
+function collapseFeatures() {
+  //$("#featureHeader").toggle(true);
+  $("#featureList").slideUp('fast');
+};
+
+function init_gui () {
+  $(document).ready(function() {
+    /* expandPanel on click, too - good for mobile devices without mouse */
+    $('#loadControlsButton').click(expandPanel);
+    $('#featureHandle').click(expandFeatures);
+    $('#featureHandle').hoverIntent({
+      over: expandFeatures,
+      timeout: 10,
+      out: function() {return true;}
+    });
+    $('#featureList').hoverIntent({
+      over: function() { return true;},
+      timeout: 10,
+      out: collapseFeatures
+    });
+  });
+}
+
+function loadFeatures (features) {
+  $("#featureList").empty();
+  console.log("Adding " + features.length + " features");
+  expandFeatures();
+  for (var i = 0; i < features.length; i++) {
+    var inner = $("<div/>", {
+      id:"feature"+i,
+      class:"featureItem"}).text(features[i][0]);
+    var outer = $("<div/>", {
+        id:"featuresMargin",
+        class:"controlMargin" }).text('');
+    outer.append(inner);
+    outer.appendTo("#featureList");
+    inner.data("Data",{
+        label: features[i][0],
+        xyz: features[i][1]
+      });
+    inner.click(zoomXYZ);
+  }
+  //$("featureList").html();
+  list_height = 0
+  list_height = $("#featuresBoxInner").height();
+  //$("#featuresBoxInner").children().each(function () {
+  //  list_height += $(this).height();
+  //});
+  console.log("height: " + list_height);
+  //$("#featureBox").height(Math.min(200, list_height));
+}
+
 function loadFromPDB (evt) {
   var pdb_id = $("#pdbIdInput").val();
-  console.log("HELLO");
-  console.log(pdb_id);
+  console.log("PDB ID: " + pdb_id);
   if (pdb_id.length != 4) {
     $("The string '" + pdb_id + "' is not a valid PDB ID.").dialog({
       modal: true,
@@ -488,8 +487,13 @@ function loadFromPDB (evt) {
 }
 
 function requestFromServer (evt) {
+  collapsePanel();
   reset_viewer();
   var pdb_id = $("#pdbIdInput").val();
+  requestPDB(pdb_id);
+}
+
+function requestPDB (pdb_id) {
   console.log("HELLO");
   console.log(pdb_id);
   if (pdb_id.length != 4) {

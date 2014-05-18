@@ -3,7 +3,7 @@
 
 //----------------------------------------------------------------------
 // MAP DISPLAY
-function mapDisplayObject (map, name, flag_difference_map) {
+function mapDisplayObject (map, name, flag_difference_map, flag_anom_map) {
   this.data = map;
   this.name = name;
   this.display_data = null;
@@ -14,9 +14,18 @@ function mapDisplayObject (map, name, flag_difference_map) {
     color: "#00c0ff"
   };
   if (flag_difference_map) {
+    if (flag_anom_map) { // anomalous residual or LLG map
+      this.parameters['isolevel'] = 3.0;
+      this.parameters['color'] = "#ffff00";
+      this.parameters['color-'] = "#ff00ff";
+    } else {
+      this.parameters['isolevel'] = 3.0;
+      this.parameters['color'] = "#00ff00";
+      this.parameters['color-'] = "#ff0000";
+    }
+  } else if (flag_anom_map) {
     this.parameters['isolevel'] = 3.0;
-    this.parameters['color'] = "#00ff00";
-    this.parameters['color-'] = "#ff0000";
+    this.parameters['color'] = "#ffa0a0";
   }
   this.meshes = [];
   this.update_isolevel = function (isolevel, radius) {

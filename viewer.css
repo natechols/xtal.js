@@ -1,11 +1,14 @@
 
-div.controlBox {
+div {
   vertical-align: top;
   text-align: center;
   font-size: 9.5px;
   font-family: Lucida Grande, sans-serif;
   color: white;
   background-color:#202020;
+}
+
+div.controlBox {
 }
 
 div.controlMargin {
@@ -22,6 +25,27 @@ div.controlItem {
   padding: 5px;
 }
 
+div.centeredControls {
+  position:absolute;
+  right:50%;
+  bottom:50%;
+  padding: 20px;
+  display: none;
+  border: 1px solid;
+  border-color: #606060;
+}
+
+div.controlButton {
+  position: fixed;
+  width: 120px;
+  position: fixed;
+  bottom: 0px;
+}
+
+#loadControlsButton {
+  right: 0;
+}
+
 div.popUp {
   text-align: left;
   display: none;
@@ -29,9 +53,6 @@ div.popUp {
 
 #loadBox {
   width: 300px;
-  position:fixed;
-  right:0;
-  bottom:0px;
 }
 
 #featureBox {
