@@ -332,7 +332,7 @@ Axis = function drawAxes (size, xyz, color_by_axis, width) {
     new THREE.Color( 0x60ff60 ),
     new THREE.Color( 0x0060ff ),
   ];
-  var default_color = new THREE.Color(0xe0e060);
+  var default_color = new THREE.Color(0xa0ff60);
   for (var i = 0; i < 6; i += 2) {
     var x1 = x + (vectors[i][0]*size);
     var y1 = y + (vectors[i][1]*size);

@@ -27,7 +27,7 @@ div.popUp {
   display: none;
 }
 
-#uploadBox {
+#loadBox {
   width: 300px;
   position:fixed;
   right:0;
@@ -39,6 +39,11 @@ div.popUp {
   position: fixed;
   left:0;
   bottom:0px;
+}
+
+#featureList {
+  height: 200px;
+  overflow: auto;
 }
 
 div.featureItem {

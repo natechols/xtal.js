@@ -155,7 +155,7 @@ function get_grid_value (i, j, k, value) {
 // CCP4 MAP
 // http://www.ccp4.ac.uk/html/maplib.html#description
 function ccp4_map (mapdata) {
-  //console.log("Map data size: " + mapdata.length);
+  console.log("Map data size: " + mapdata.length);
   this.mode = mapdata[3];
   this.dim = [ mapdata[7], mapdata[8], mapdata[9] ];
   var cellData = new ArrayBuffer(24);
@@ -216,7 +216,7 @@ function ccp4_map (mapdata) {
     throw Error("Index does not match data length: " + idx + " vs. "+
                 mapdata.length);
   }
-  if (false) {
+  if (true) { //(false) {
     console.log("unit cell grid: " + this.dim);
     console.log("map origin: " + this.origin);
     console.log("map grid: " + this.grid);

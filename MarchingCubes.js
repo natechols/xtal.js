@@ -397,7 +397,7 @@ function isosurface (points, values, n_real, isolevel) {
     }
   }
 
-  geometry.computeCentroids();
+//  geometry.computeCentroids();
   geometry.computeFaceNormals();
   geometry.computeVertexNormals();
   return geometry;

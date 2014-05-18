@@ -9,6 +9,7 @@ var maps = [];
 var models = [];
 var axes;
 var gui;
+var gui_folders = [];
 var last_center;
 var global_parameters = {
   map_radius: 10.0,
@@ -83,6 +84,25 @@ function render()
   renderer.render( scene, camera );
 }
 
+function reset_viewer () {
+  for (var i = 0; i < gui_folders.length; i++) {
+    gui.remove(gui_folders[i]);
+    delete gui_folders[i];
+  }
+  for (var i = 0; i < maps.length; i++) {
+    maps[i].clear_mesh(true);
+    delete maps[i];
+  }
+  for (var i = 0; i < models.length; i++) {
+    clear_model_geom(models[i]);
+    delete models[i];
+  }
+  camera.position.set(20,20,60);
+  camera.lookAt(scene.position);
+  controls.update();
+  OnChange();
+}
+
 function readCCP4Map(evt) {
   var file = evt.target.files[0];
   if (file) {
@@ -101,10 +121,13 @@ function readCCP4Map(evt) {
   }
 }
 
-function initialize_map_object (mapdata, map_name) {
+function initialize_map_object (mapdata, map_name, diff_map_flag) {
   var map = new ccp4_map(mapdata);
-  var diffmap = map_name.indexOf("_mFo-DFc") != -1; // XXX HACK
-  var map_display = new mapDisplayObject(map, map_name, diffmap);
+  if (! diff_map_flag) {
+    var diff_map_flag = ((map_name == "mFo-DFc") ||
+      (map_name.indexOf("_mFo-DFc") != -1)); // XXX HACK
+  }
+  var map_display = new mapDisplayObject(map, map_name, diff_map_flag);
   map_display.clear_mesh = function () {
     clear_mesh(map_display);
   }
@@ -176,6 +199,7 @@ function redrawMaps (force) {
 function setup_map_dat_gui (map) {
   // GUI
   var map_gui = gui.addFolder("Map: " + map.name);
+  gui_folders.push(map_gui);
   var isVisible = map_gui.add(map.parameters,
     'visible').name("Display").listen();
   isVisible.onChange(function (value){
@@ -211,6 +235,7 @@ function setup_map_dat_gui (map) {
 
 function setup_model_dat_gui (model) {
   var model_gui = gui.addFolder("Model: " +model.name);
+  gui_folders.push(model_gui);
   var isVisible = model_gui.add(model.parameters,
     'visible').name("Display").listen();
   isVisible.onChange(function (value){
@@ -315,8 +340,8 @@ function OnChange () {
   var cx = camera.position.x, cy = camera.position.y, cz = camera.position.z;
   var ox = controls.target.x, oy = controls.target.y, oz = controls.target.z;
   var dxyz = Math.sqrt(Math.pow(cx-ox, 2) + Math.pow(cy-oy, 2) + Math.pow(cz-oz, 2));
-  scene.fog.near = dxyz - 1;
-  scene.fog.far = Math.max(dxyz * 1.2, dxyz+10);
+  scene.fog.near = 2; //dxyz / 2;
+  scene.fog.far = Math.min(dxyz * 1.2, dxyz+10);
   camera.near = dxyz * 0.8;
   camera.far = dxyz * 2;
   camera.updateProjectionMatrix();
@@ -421,7 +446,8 @@ function recenter (xyz) {
   controls.target.z = xyz[2];
   camera.lookAt(xyz);
   controls.update();
-  OnChange();
+  redrawMaps();
+  render();
 }
 
 function zoomXYZ (evt) {
@@ -462,6 +488,7 @@ function loadFromPDB (evt) {
 }
 
 function requestFromServer (evt) {
+  reset_viewer();
   var pdb_id = $("#pdbIdInput").val();
   console.log("HELLO");
   console.log(pdb_id);
@@ -476,16 +503,24 @@ function requestFromServer (evt) {
     });
   }
   var req1 = new XMLHttpRequest();
-  req1.open('GET', 'http://localhost:8080/' + pdb_id, true);
+  req1.open('GET', 'http://localhost/phenix/PDB/' + pdb_id, true);
   req1.onreadystatechange = function (aEvt) {
     if (req1.readyState == 4) {
+      console.log("RESPONSE");
       var response = jQuery.parseJSON(req1.responseText);
       if (response.error) {
         throw Error(response.error);
       }
       loadPDBFromServer(response.pdb_file, pdb_id);
-    } else {
-      console.log(req1.readyState);
+      if (response.features) {
+        loadFeatures(response.features);
+      }
+      if (response.two_fofc_map) {
+        loadMapFromServer(response.two_fofc_map, "2mFo-Dfc", false);
+      }
+      if (response.fofc_map) {
+        loadMapFromServer(response.fofc_map, "mFo-Dfc", true);
+      } 
     }
   };
   req1.send(null);
@@ -495,7 +530,7 @@ function requestFromServer (evt) {
 function loadPDBFromServer (pdb_file, model_name) {
   var req = new XMLHttpRequest();
   console.log(pdb_file);
-  req.open('GET', 'http://localhost:8080' + pdb_file, true);
+  req.open('GET', 'http://localhost/phenix/' + pdb_file, true);
   req.onreadystatechange = function (aEvt) {
     if (req.readyState == 4) {
       if(req.status == 200) {
@@ -503,6 +538,24 @@ function loadPDBFromServer (pdb_file, model_name) {
         initialize_model_object(model, model_name);
       } else {
         console.log("Error fetching " + pdb_file);
+      }
+    }
+  };
+  req.send(null);
+}
+
+function loadMapFromServer (map_file, map_name, diff_map_flag) {
+  var req = new XMLHttpRequest();
+  req.responseType = "arraybuffer";
+  console.log(map_file);
+  req.open('GET', 'http://localhost/phenix/' + map_file, true);
+  req.onreadystatechange = function (aEvt) {
+    if (req.readyState == 4) {
+      if(req.status == 200) {
+        var map_data = new Int32Array(req.response);
+        initialize_map_object(map_data, map_name, diff_map_flag);
+      } else {
+        console.log("Error fetching " + map_file);
       }
     }
   };
