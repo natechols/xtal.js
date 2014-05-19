@@ -26,9 +26,17 @@ div.controlItem {
 }
 
 div.centeredControls {
-  position:absolute;
+/*  position:absolute;
   right:50%;
   bottom:50%;
+  width: 50%;
+  height: 50%; */
+  width: 200px;
+  height: 40px;
+  overflow: auto;
+  margin: auto;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
   padding: 20px;
   display: none;
   border: 1px solid;
