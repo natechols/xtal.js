@@ -10,6 +10,28 @@ select {
   font-size: 10pt;
 }
 
+h2 {
+  text-align: center;
+  font-size: 24pt;
+}
+
+h3 {
+  text-align: center;
+  font-size: 18pt;
+}
+
+h4 {
+  text-align: center;
+  font-size: 14pt;
+}
+
+div.content {
+  width: 920px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 div.controls {
   margin-left: auto;
   margin-right: auto;
@@ -26,15 +48,27 @@ div.control-item {
 
 div.loggraph {
   padding: 5px;
-  width: 800px;
-  height: 600px;
+  /*width: 800px;
+  height: 600px;*/
   text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+p.plot_title {
+  text-align: center;
+  width: 800px;
   margin-left: auto;
   margin-right: auto;
 }
 
 div.loggraph-display {
   background-color: white;
+  width: 800px;
+  display: block;
+  margin-left: 60px;
+  margin-right: 60px;
+  text-align: center;
 }
 
 /* D3 stuff */
@@ -53,4 +87,8 @@ div.loggraph-display {
 .legend {
   font-size: 9pt;
   /*background-color: #f0f0f0;*/
+}
+
+svg {
+  background: #ffffff;
 }
