@@ -173,7 +173,8 @@ function readPDBfile (evt) {
     var fr = new FileReader();
     fr.onloadend = function() {
       var contents = this.result;
-      var model = new Model(contents);
+      var model = new Model();
+      model.from_pdb(contents);
       initialize_model_object(model, file.name);
     };
     fr.readAsText(file);
@@ -476,7 +477,8 @@ function loadFromPDB (evt) {
   req.onreadystatechange = function (aEvt) {
     if (req.readyState == 4) {
       if(req.status == 200) {
-        var model = new Model(req.responseText);
+        var model = new Model();
+        model.from_pdb(req.responseText);
         initialize_model_object(model, pdb_id);
       } else {
         console.log("Error fetching " + pdb_id);
@@ -507,7 +509,8 @@ function requestPDB (pdb_id) {
     });
   }
   var req1 = new XMLHttpRequest();
-  req1.open('GET', 'http://localhost/phenix/PDB/' + pdb_id, true);
+  base_url = "http://" + location.host + "/phenix/"
+  req1.open('GET', base_url + 'PDB/' + pdb_id, true);
   req1.onreadystatechange = function (aEvt) {
     if (req1.readyState == 4) {
       console.log("RESPONSE");
@@ -515,7 +518,13 @@ function requestPDB (pdb_id) {
       if (response.error) {
         throw Error(response.error);
       }
-      loadPDBFromServer(response.pdb_file, pdb_id);
+      // Load PDB or mmCIF format file.
+      if (response.pdb_mmcif) {
+        load_mmcif(response.pdb_mmcif, pdb_id);                
+      } else if (response.pdb_file) {
+        loadPDBFromServer(response.pdb_file, pdb_id);        
+      }
+      
       if (response.features) {
         loadFeatures(response.features);
       }
@@ -531,14 +540,26 @@ function requestPDB (pdb_id) {
   return;
 }
 
+// Load mmCIF
+function load_mmcif(pdb_mmcif, model_name) {
+  var url = '/phenix/'+pdb_mmcif
+  var parser = new phenix_mmcif_parser();
+  parser.load(url, function(mmcif_model) {
+    var model = new Model();
+    model.from_mmcif(mmcif_model[model_name.toLowerCase()]);
+    initialize_model_object(model, model_name);
+  });
+}
+
 function loadPDBFromServer (pdb_file, model_name) {
   var req = new XMLHttpRequest();
-  console.log(pdb_file);
-  req.open('GET', 'http://localhost/phenix/' + pdb_file, true);
+  base_url = "http://" + location.host + "/phenix/"
+  req.open('GET', base_url + pdb_file, true);
   req.onreadystatechange = function (aEvt) {
     if (req.readyState == 4) {
       if(req.status == 200) {
-        var model = new Model(req.responseText);
+        var model = new Model();
+        model.from_pdb(req.responseText);
         initialize_model_object(model, model_name);
       } else {
         console.log("Error fetching " + pdb_file);
@@ -552,7 +573,8 @@ function loadMapFromServer (map_file, map_name, diff_map_flag) {
   var req = new XMLHttpRequest();
   req.responseType = "arraybuffer";
   console.log(map_file);
-  req.open('GET', 'http://localhost/phenix/' + map_file, true);
+  base_url = "http://" + location.host + "/phenix/"
+  req.open('GET', base_url + map_file, true);
   req.onreadystatechange = function (aEvt) {
     if (req.readyState == 4) {
       if(req.status == 200) {
