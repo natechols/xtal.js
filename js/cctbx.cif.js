@@ -1,9 +1,9 @@
 /* 
-	PHENIX module for reading and writing mmCIF files.
+	CCTBX module for reading and writing mmCIF files.
 */
 
-var phenix = (function(module) {return module})(phenix||{});
-phenix.mmcif = (function(module) {
+var cctbx = (function(module) {return module})(cctbx||{});
+cctbx.cif = (function(module) {
 
   // Regular expressions for matching commands
 	// and data types.
@@ -53,22 +53,22 @@ phenix.mmcif = (function(module) {
 	}
   
   /*********************************************/
-  function phenix_mmcif_reader() {
+  function cctbx_cif_reader() {
     /* mmCIF Reader */
 		// A dictionary of blocks.
     this.blocks = {};
   }
-  phenix_mmcif_reader.prototype.add_block = function(block) {
+  cctbx_cif_reader.prototype.add_block = function(block) {
     this.blocks[block.name] = block;
   }
-  phenix_mmcif_reader.prototype.get_block = function(name) {
+  cctbx_cif_reader.prototype.get_block = function(name) {
     return this.blocks[trim(name)];
   }
-  phenix_mmcif_reader.prototype.load = function(url, callback) {
+  cctbx_cif_reader.prototype.load = function(url, callback) {
     /* Load data */
     // Create a new parser.
   	var self = this;
-  	var parser = new phenix_mmcif_parser(function(b){self.add_block(b)});
+  	var parser = new cctbx_cif_parser(function(b){self.add_block(b)});
   	function listen(e) {
 			parser.parse_chunk(this.response);
       callback(self);
@@ -85,16 +85,16 @@ phenix.mmcif = (function(module) {
   }
 
   /*********************************************/
-  function phenix_mmcif_block(name) {
+  function cctbx_cif_block(name) {
     /* mmCIF Data Block */
     this.name = trim(name);
     this.data = {};
   }
-  phenix_mmcif_block.prototype.get = function(key) {
+  cctbx_cif_block.prototype.get = function(key) {
 		/* Get a mmCIF value for key */
     return this.data[key]
   }
-  phenix_mmcif_block.prototype.transpose = function(key) {
+  cctbx_cif_block.prototype.transpose = function(key) {
 		/* Transpose a loop */
     var group = {};
     for (var i in this.data) {
@@ -104,7 +104,7 @@ phenix.mmcif = (function(module) {
     }
     return group    
   }
-  phenix_mmcif_block.prototype.group = function(key) {
+  cctbx_cif_block.prototype.group = function(key) {
 		/* Return subset of keys with a common prefix key */
     var group = {};
     for (var i in this.data) {
@@ -114,14 +114,14 @@ phenix.mmcif = (function(module) {
     }
     return group
   }
-  phenix_mmcif_block.prototype.set = function(key, value) {
+  cctbx_cif_block.prototype.set = function(key, value) {
 		/* Set a mmCIF key */
   	this.data[trim(key)] = value;
   }
-	phenix_mmcif_block.prototype.append = function(key, value) {
+	cctbx_cif_block.prototype.append = function(key, value) {
 		this.data[key].push(value);
 	}
-  phenix_mmcif_block.prototype.append_row = function(keys, values) {
+  cctbx_cif_block.prototype.append_row = function(keys, values) {
 		/* Add a row to a loop. keys and values must be same length. */
   	if (keys.length != values.length) {
   		return
@@ -130,13 +130,13 @@ phenix.mmcif = (function(module) {
   		this.data[keys[i]].push(values[i]);
   	}
   }
-  phenix_mmcif_block.prototype.add_loop_key = function(key) {
+  cctbx_cif_block.prototype.add_loop_key = function(key) {
 		/* Initialize a key in a loop */
   	this.data[key] = [];
   }
 
   /*********************************************/
-  function phenix_mmcif_parser(block_callback) {
+  function cctbx_cif_parser(block_callback) {
   	/* mmCIF Parser
 	
   	Processes a stream of mmCIF statements. Each statement can update the 
@@ -159,7 +159,7 @@ phenix.mmcif = (function(module) {
     // The current step
   	this.step = this.step_init; 
   }
-  phenix_mmcif_parser.prototype.parse_chunk = function(input) {
+  cctbx_cif_parser.prototype.parse_chunk = function(input) {
   	// Process the lines in the input data.
 		this.gen.add(input);
 		var line = this.gen.next();
@@ -169,7 +169,7 @@ phenix.mmcif = (function(module) {
 		}
   }
   /***** Steps *****/
-  phenix_mmcif_parser.prototype.step_init = function(line) {
+  cctbx_cif_parser.prototype.step_init = function(line) {
   	// Initial step, or after returning from a loop or block.
   	var m = re_statement.exec(line);
   	if (m[1]) {
@@ -186,23 +186,23 @@ phenix.mmcif = (function(module) {
   	// Next step: stay in initial state.
   	return this.step_init
   }
-  phenix_mmcif_parser.prototype.step_block = function(line) {
+  cctbx_cif_parser.prototype.step_block = function(line) {
     // Create a new block. 
   	var name = re_block.exec(line)[1];
-    this.block = new phenix_mmcif_block(name);
+    this.block = new cctbx_cif_block(name);
     // Call block_callback whenever a block is created.
     this.block_callback(this.block);
   	// Next step: step_block is always a single line command
   	return this.step_init
   }
-  phenix_mmcif_parser.prototype.step_loop = function(line) {
+  cctbx_cif_parser.prototype.step_loop = function(line) {
   	// Initialize the loop
   	this.loop = [];
 		this.loop_i = 0;
   	// Next step: add loop keys.
   	return this.step_loop_keys
   }
-  phenix_mmcif_parser.prototype.step_loop_keys = function(line) {
+  cctbx_cif_parser.prototype.step_loop_keys = function(line) {
   	var m = re_statement.exec(line);
   	if (m[3]) {
   		// Add the key to the loop.
@@ -218,7 +218,7 @@ phenix.mmcif = (function(module) {
   		return this.step_loop_append(line);
   	}
   }
-  phenix_mmcif_parser.prototype.step_loop_append = function(line) {
+  cctbx_cif_parser.prototype.step_loop_append = function(line) {
   	var m = re_statement.exec(line);
   	if (m[0]) {
   		// Next step: a statement was found, return to initial step.
@@ -232,7 +232,7 @@ phenix.mmcif = (function(module) {
 		}
   	return this.step_loop_append
   }
-  phenix_mmcif_parser.prototype.step_tag = function(line) {
+  cctbx_cif_parser.prototype.step_tag = function(line) {
   	var m = re_tag.exec(line);
   	if (!m[0]) {
   		// Next step: Return to init
@@ -250,7 +250,7 @@ phenix.mmcif = (function(module) {
   	this.block.set(tag, value[0]);
   	return this.step_init
   }
-  phenix_mmcif_parser.prototype.step_save = function(line) {
+  cctbx_cif_parser.prototype.step_save = function(line) {
 		var m = re_statement.exec(line);
 		if (m[4]) {
 			// Next step: found end save_; break
@@ -258,7 +258,7 @@ phenix.mmcif = (function(module) {
 		}
   	return this.step_save
   }
-  phenix_mmcif_parser.prototype.parse_values = function(line) {
+  cctbx_cif_parser.prototype.parse_values = function(line) {
     /* Process a string containing values.
     These may or may not be quoted with single or double quotes.
   
@@ -305,7 +305,7 @@ phenix.mmcif = (function(module) {
   	}
   	return p
   }
-	phenix_mmcif_parser.prototype.parse_value_text = function(line) {
+	cctbx_cif_parser.prototype.parse_value_text = function(line) {
 		var text = "";
 		// Feed forward multi-line text comments...
 		while (line != null) {
@@ -322,10 +322,10 @@ phenix.mmcif = (function(module) {
 	
 	
 	
-  // Export into phenix.mmcif
+  // Export into cctbx.cif
   return {
-    'parser':phenix_mmcif_parser,
-    'block':phenix_mmcif_block,
-    'reader':phenix_mmcif_reader
+    'parser':cctbx_cif_parser,
+    'block':cctbx_cif_block,
+    'reader':cctbx_cif_reader
   }
-})(phenix);
+})(cctbx);
