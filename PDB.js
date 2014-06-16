@@ -31,41 +31,80 @@ function Model (pdb_string) {
   this.space_group = null;
   this.has_hydrogens = false;
   this.ligand_flags = null;
-  var lines = pdb_string.split("\n");
-  var chain_index = 0;
-  var last_chain = null;
-  for (var i = 0; i < lines.length; i++) {
-    line = lines[i];
-    var rec_type = line.substring(0,6);
-    if (rec_type == "ATOM  " || rec_type == "HETATM") {
-      var new_atom = new Atom(line);
-      this.atoms.push(new_atom);
-      if ((! this.has_hydrogens) && (new_atom.element == "H")) {
-        this.has_hydrogens = true;
-      }
-      if (new_atom.chain != last_chain) {
+  
+  // Initialize from mmCIF model
+  this.from_mmcif = function(mmcif_model) {
+    var chain_index = 0;
+    var last_chain = null;
+
+    var m = mmcif_model;
+    console.log("from_mmcif model:", m);
+    for (var i=0; i<m['_atom_site.id'].length; i++) {
+      var atom = new Atom();
+      atom.from_mmcif_line(mmcif_model, i);
+      
+      // Setup atom...
+      this.atoms.push(atom);
+
+      // Update the chain.
+      if (atom.chain != last_chain) {
         chain_index++;
       }
       this.chain_indices.push(chain_index);
-      last_chain = new_atom.chain;
-    } else if (rec_type == "CRYST1") {
-      var a = parseFloat(line.substring(6, 15));
-      var b = parseFloat(line.substring(15, 24));
-      var c = parseFloat(line.substring(24, 33));
-      var alpha = parseFloat(line.substring(33, 40));
-      var beta = parseFloat(line.substring(40, 47));
-      var gamma = parseFloat(line.substring(47, 54));
-      var sg_symbol = line.substring(55, 66);
-      this.unit_cell = new UnitCell(a, b, c, alpha, beta, gamma);
-    } else if (rec_type.substring(0, 3) == "TER") {
-      chain_index++;
+      last_chain = atom.chain;
     }
+    console.log("loaded atoms:", i, this.atoms.length);
+    // Update connectivity.
+    if (this.atoms.length == 0) {
+      throw Error("No atom records found.")
+    }
+    this.connectivity = get_connectivity_fast(this.atoms);
   }
-  if (this.atoms.length == 0) {
-    throw Error("No atom records found.")
+
+  // Initialize from PDB string
+  this.from_pdb = function(pdb_string) {
+    console.log("from_pdb");
+    var lines = pdb_string.split("\n");
+    var chain_index = 0;
+    var last_chain = null;
+  
+    for (var i = 0; i < lines.length; i++) {
+      line = lines[i];
+      var rec_type = line.substring(0,6);
+      if (rec_type == "ATOM  " || rec_type == "HETATM") {
+        var new_atom = new Atom() 
+        new_atom.from_pdb_line(line);
+        
+        this.atoms.push(new_atom);
+        if ((! this.has_hydrogens) && (new_atom.element == "H")) {
+          this.has_hydrogens = true;
+        }
+        if (new_atom.chain != last_chain) {
+          chain_index++;
+        }
+        this.chain_indices.push(chain_index);
+        last_chain = new_atom.chain;
+      } else if (rec_type == "CRYST1") {
+        var a = parseFloat(line.substring(6, 15));
+        var b = parseFloat(line.substring(15, 24));
+        var c = parseFloat(line.substring(24, 33));
+        var alpha = parseFloat(line.substring(33, 40));
+        var beta = parseFloat(line.substring(40, 47));
+        var gamma = parseFloat(line.substring(47, 54));
+        var sg_symbol = line.substring(55, 66);
+        this.unit_cell = new UnitCell(a, b, c, alpha, beta, gamma);
+      } else if (rec_type.substring(0, 3) == "TER") {
+        chain_index++;
+      }
+    }
+    if (this.atoms.length == 0) {
+      throw Error("No atom records found.")
+    }
+
+    //this.connectivity = get_connectivity_simple(this.atoms);
+    this.connectivity = get_connectivity_fast(this.atoms);
   }
-  //this.connectivity = get_connectivity_simple(this.atoms);
-  this.connectivity = get_connectivity_fast(this.atoms);
+  
   this.extract_trace = function () {
     return extract_trace(this);
   }
@@ -147,7 +186,29 @@ function Atom (pdb_line) {
   this.element = "";
   this.charge = 0;
   this.i_seq = "";
-  if (pdb_line) {
+  
+  this.from_mmcif_line = function(m, i) {
+    if (m['_atom_site.group_PDB'][i] == "HETATM") {
+      this.hetero = true;
+    }
+    this.name = m['_atom_site.label_atom_id'][i];
+    this.altloc = m['_atom_site.label_alt_id'][i];
+    this.resname = m['_atom_site.label_comp_id'][i];
+    this.chain = m['_atom_site.label_asym_id'][i];
+    this.resseq = m['_atom_site.label_entity_id'][i];
+    this.icode = m['_atom_site.label_seq_id'][i];
+    var x = m['_atom_site.Cartn_x'][i];
+    var y = m['_atom_site.Cartn_y'][i];
+    var z = m['_atom_site.Cartn_z'][i];
+    this.xyz = [x, y, z];
+    this.occ = m['_atom_site.occupancy'][i];
+    this.b = m['_atom_site.B_iso_or_equiv'][i];
+    this.element = m['_atom_site.auth_atom_id'][i];
+    this.charge = m['_atom_site.pdbx_formal_charge'][i];
+  }
+  
+  // From PDB Line.
+  this.from_pdb_line = function(pdb_line) {
     if (pdb_line.length < 66) {
       throw Error("ATOM or HETATM record is too short: " + pdb_line);
     }
@@ -176,6 +237,7 @@ function Atom (pdb_line) {
       this.charge = pdb_line.substring(78, 80).trim();
     }
   }
+  
   this.distance = function (other) {
     return distance(this.xyz, other.xyz);
   }
