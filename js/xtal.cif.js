@@ -87,7 +87,11 @@ xtal.cif = (function(module) {
   	req.onload = listen;
   	req.send();
   }
-
+	Reader.prototype.parse = function(data) {
+		var self = this;
+		var parser = new Parser(function(b){self.add_block(b)});
+		parser.parse_chunk(data);
+	}
   /*********************************************/
   function Block(name) {
     /* mmCIF Data Block */
@@ -227,7 +231,7 @@ xtal.cif = (function(module) {
   }
   Parser.prototype.step_loop_append = function(line) {
   	var m = re_statement.exec(line);
-  	if (m[0]) {
+  	if (m[1]||m[2]||m[3]||m[4]) {
   		// Next step: a statement was found, return to initial step.
   		return this.step_init(line)
   	}
@@ -250,7 +254,6 @@ xtal.cif = (function(module) {
   	var value = this.parse_values(m[2]);
 		// if (m[2] == "") {
 		// 	// Next step: multi-line tag text
-		// 	console.log("multiline?", m[2]);
 		// 	value = this.parse_values(this.gen.next());
 		// 	// return this.step_tag_text
 		// }
@@ -282,7 +285,6 @@ xtal.cif = (function(module) {
   	var char = null;  // current character
   	var i = 0; // current index
   	var j = line.length; // end index
-
 		if (line[0] == ";") {
 			return [this.parse_value_text(line.substring(1, j))]
 		}
@@ -297,7 +299,7 @@ xtal.cif = (function(module) {
 				i = j;
   		} else if (char == '"' || char == "'") {
   			// append value between quotes
-  			n = line.indexOf(char, i+1); // find next quote after quote
+  			n = line.indexOf(char+" ", i+1); // find next quote after quote
   			if (n<1){n=j} // ...until end of line if not found
   			p.push(checknumber(line.substring(i+1, n))); // find string between
   			i = n + 1; // advance past end quote
@@ -327,7 +329,7 @@ xtal.cif = (function(module) {
 		return text
 	}
 	
-  // Exports into xtal.cif
+  // Exports
   return {
     'Parser':Parser,
     'Block':Block,
