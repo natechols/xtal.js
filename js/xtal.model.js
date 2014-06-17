@@ -35,13 +35,37 @@ function Model (pdb_string) {
   this.ligand_flags = null;
   
   // Initialize from mmCIF model
-  this.from_mmcif = function(mmcif_model) {
+  this.from_mmcif = function(cif_block) {
     var chain_index = 0;
     var last_chain = null;
-		var atoms = mmcif_model.loop_dict('_atom_site');
+		var atoms = cif_block.loop_dict('_atom_site');
 		for (var i=0;i<atoms.length;i++) {
       var atom = new Atom();
-      atom.from_mmcif_line(atoms[i]);
+      atom.from_mmcif(atoms[i]);
+      // Setup atom...
+      this.atoms.push(atom);
+      // Update the chain.
+      if (atom.chain != last_chain) {
+        chain_index++;
+      }
+      this.chain_indices.push(chain_index);
+      last_chain = atom.chain;
+    }
+    // Update connectivity.
+    if (this.atoms.length == 0) {
+      throw Error("No atom records found.")
+    }
+    this.connectivity = get_connectivity_fast(this.atoms);
+  }
+	
+  // Initialize from mmCIF model
+  this.from_monlib = function(cif_block) {
+    var chain_index = 0;
+    var last_chain = null;
+		var atoms = cif_block.loop_dict('_chem_comp_atom');
+		for (var i=0;i<atoms.length;i++) {
+      var atom = new Atom();
+			atom.from_monlib(atoms[i]);
       // Setup atom...
       this.atoms.push(atom);
       // Update the chain.
@@ -184,7 +208,7 @@ function Atom (pdb_line) {
   this.charge = 0;
   this.i_seq = "";
   
-  this.from_mmcif_line = function(m) {
+  this.from_mmcif = function(m) {
     if (m['group_pdb'] == "HETATM") {
       this.hetero = true;
     }
@@ -200,10 +224,19 @@ function Atom (pdb_line) {
     this.xyz = [x, y, z];
     this.occ = m['occupancy'];
     this.b = m['b_iso_or_equiv'];
-    this.element = m['auth_atom_id'];
+    this.element = m['type_symbol'];
     this.charge = m['pdbx_formal_charge'];
   }
   
+	this.from_monlib = function(m) {
+    var x = m['x'];
+    var y = m['y'];
+    var z = m['z'];
+    this.xyz = [x, y, z];
+    this.element = m['type_symbol'];
+    this.charge = m['partial_charge'];
+	}
+	
   // From PDB Line.
   this.from_pdb_line = function(pdb_line) {
     if (pdb_line.length < 66) {
