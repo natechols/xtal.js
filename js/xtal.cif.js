@@ -28,7 +28,8 @@ xtal.cif = (function(module) {
   /*********************************************/
 	function input_generator(buffer, sep) {
 		/* Input generator */
-		// Would be nice if ECMAScript 6 iterators were widely available.
+		// Would be nice if ECMAScript 6 iterators
+		// were widely available.
     this.buffer = buffer || "";
     this.sep = sep || "\n";
     this.i = 0;
@@ -53,25 +54,25 @@ xtal.cif = (function(module) {
 	}
   
   /*********************************************/
-  function xtal_cif_reader() {
+  function Reader() {
     /* mmCIF Reader */
 		// A dictionary of blocks.
     this.blocks = {};
   }
-  xtal_cif_reader.prototype.add_block = function(block) {
+  Reader.prototype.add_block = function(block) {
     this.blocks[block.name] = block;
   }
-  xtal_cif_reader.prototype.get_block = function(name) {
+  Reader.prototype.get_block = function(name) {
     return this.blocks[trim(name)];
   }
-  xtal_cif_reader.prototype.first_block = function(name) {
+  Reader.prototype.first_block = function(name) {
     return this.blocks[Object.keys(this.blocks)[0]];
   }
-  xtal_cif_reader.prototype.load = function(url, callback) {
+  Reader.prototype.load = function(url, callback) {
     /* Load data */
     // Create a new parser.
   	var self = this;
-  	var parser = new xtal_cif_parser(function(b){self.add_block(b)});
+  	var parser = new Parser(function(b){self.add_block(b)});
   	function listen(e) {
 			parser.parse_chunk(this.response);
       callback(self);
@@ -88,43 +89,46 @@ xtal.cif = (function(module) {
   }
 
   /*********************************************/
-  function xtal_cif_block(name) {
+  function Block(name) {
     /* mmCIF Data Block */
     this.name = trim(name);
     this.data = {};
   }
-  xtal_cif_block.prototype.get = function(key) {
+  Block.prototype.get = function(key) {
 		/* Get a mmCIF value for key */
     return this.data[key]
   }
-  xtal_cif_block.prototype.transpose = function(key) {
-		/* Transpose a loop */
-    var group = {};
-    for (var i in this.data) {
-      if (i.indexOf(key)==0) {
-        group[i] = this.data[i];
-      }
-    }
-    return group    
+  Block.prototype.loop_dict = function(group) {
+		var keys = [];
+		var keys_split = []; // save some splits
+		var ret = [];
+		for (var i in this.data) {
+			if (i.split(".")[0]==group) {
+				keys.push(i);
+				keys_split.push(i.split(".")[1]);
+			}
+		}
+		var count = this.data[keys[0]].length;
+		for (var i=0;i<count;i++) {
+			var d = {}
+			for (var j=0;j<keys.length;j++) {
+				d[keys_split[j]] = this.data[keys[j]][i];
+			}
+			ret.push(d);
+		}
+		return ret
   }
-  xtal_cif_block.prototype.group = function(key) {
-		/* Return subset of keys with a common prefix key */
-    var group = {};
-    for (var i in this.data) {
-      if (i.indexOf(key)==0) {
-        group[i] = this.data[i];
-      }
-    }
-    return group
+  Block.prototype.loop_list = function(key) {
+		return {}
   }
-  xtal_cif_block.prototype.set = function(key, value) {
+  Block.prototype.set = function(key, value) {
 		/* Set a mmCIF key */
   	this.data[trim(key)] = value;
   }
-	xtal_cif_block.prototype.append = function(key, value) {
+	Block.prototype.append = function(key, value) {
 		this.data[key].push(value);
 	}
-  xtal_cif_block.prototype.append_row = function(keys, values) {
+  Block.prototype.append_row = function(keys, values) {
 		/* Add a row to a loop. keys and values must be same length. */
   	if (keys.length != values.length) {
   		return
@@ -133,13 +137,13 @@ xtal.cif = (function(module) {
   		this.data[keys[i]].push(values[i]);
   	}
   }
-  xtal_cif_block.prototype.add_loop_key = function(key) {
+  Block.prototype.add_loop_key = function(key) {
 		/* Initialize a key in a loop */
   	this.data[key] = [];
   }
 
   /*********************************************/
-  function xtal_cif_parser(block_callback) {
+  function Parser(block_callback) {
   	/* mmCIF Parser
 	
   	Processes a stream of mmCIF statements. Each statement can update the 
@@ -162,7 +166,7 @@ xtal.cif = (function(module) {
     // The current step
   	this.step = this.step_init; 
   }
-  xtal_cif_parser.prototype.parse_chunk = function(input) {
+  Parser.prototype.parse_chunk = function(input) {
   	// Process the lines in the input data.
 		this.gen.add(input);
 		var line = this.gen.next();
@@ -172,7 +176,7 @@ xtal.cif = (function(module) {
 		}
   }
   /***** Steps *****/
-  xtal_cif_parser.prototype.step_init = function(line) {
+  Parser.prototype.step_init = function(line) {
   	// Initial step, or after returning from a loop or block.
   	var m = re_statement.exec(line);
   	if (m[1]) {
@@ -189,23 +193,23 @@ xtal.cif = (function(module) {
   	// Next step: stay in initial state.
   	return this.step_init
   }
-  xtal_cif_parser.prototype.step_block = function(line) {
+  Parser.prototype.step_block = function(line) {
     // Create a new block. 
   	var name = re_block.exec(line)[1];
-    this.block = new xtal_cif_block(name);
+    this.block = new Block(name);
     // Call block_callback whenever a block is created.
     this.block_callback(this.block);
   	// Next step: step_block is always a single line command
   	return this.step_init
   }
-  xtal_cif_parser.prototype.step_loop = function(line) {
+  Parser.prototype.step_loop = function(line) {
   	// Initialize the loop
   	this.loop = [];
 		this.loop_i = 0;
   	// Next step: add loop keys.
   	return this.step_loop_keys
   }
-  xtal_cif_parser.prototype.step_loop_keys = function(line) {
+  Parser.prototype.step_loop_keys = function(line) {
   	var m = re_statement.exec(line);
   	if (m[3]) {
   		// Add the key to the loop.
@@ -221,7 +225,7 @@ xtal.cif = (function(module) {
   		return this.step_loop_append(line);
   	}
   }
-  xtal_cif_parser.prototype.step_loop_append = function(line) {
+  Parser.prototype.step_loop_append = function(line) {
   	var m = re_statement.exec(line);
   	if (m[0]) {
   		// Next step: a statement was found, return to initial step.
@@ -235,7 +239,7 @@ xtal.cif = (function(module) {
 		}
   	return this.step_loop_append
   }
-  xtal_cif_parser.prototype.step_tag = function(line) {
+  Parser.prototype.step_tag = function(line) {
   	var m = re_tag.exec(line);
   	if (!m[0]) {
   		// Next step: Return to init
@@ -253,7 +257,7 @@ xtal.cif = (function(module) {
   	this.block.set(tag, value[0]);
   	return this.step_init
   }
-  xtal_cif_parser.prototype.step_save = function(line) {
+  Parser.prototype.step_save = function(line) {
 		var m = re_statement.exec(line);
 		if (m[4]) {
 			// Next step: found end save_; break
@@ -261,7 +265,7 @@ xtal.cif = (function(module) {
 		}
   	return this.step_save
   }
-  xtal_cif_parser.prototype.parse_values = function(line) {
+  Parser.prototype.parse_values = function(line) {
     /* Process a string containing values.
     These may or may not be quoted with single or double quotes.
   
@@ -308,7 +312,7 @@ xtal.cif = (function(module) {
   	}
   	return p
   }
-	xtal_cif_parser.prototype.parse_value_text = function(line) {
+	Parser.prototype.parse_value_text = function(line) {
 		var text = "";
 		// Feed forward multi-line text comments...
 		while (line != null) {
@@ -323,12 +327,10 @@ xtal.cif = (function(module) {
 		return text
 	}
 	
-	
-	
-  // Export into xtal.cif
+  // Exports into xtal.cif
   return {
-    'parser':xtal_cif_parser,
-    'block':xtal_cif_block,
-    'reader':xtal_cif_reader
+    'Parser':Parser,
+    'Block':Block,
+    'Reader':Reader
   }
 })(xtal);
