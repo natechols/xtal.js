@@ -495,9 +495,30 @@ function requestFromServer (evt) {
   requestPDB(pdb_id);
 }
 
+function requestModel(model_id) {
+	var reader = new xtal.cif.Reader();
+  reader.load('phenix/' + model_id, function(cif_model) {
+    var model = new xtal.model.Model();
+    model.from_mmcif(cif_model.first_block());
+    initialize_model_object(model, model_id);
+  });
+}
+
+function requestmonlib(model_id) {
+	var reader = new xtal.cif.Reader();
+  reader.load('phenix/' + model_id, function(cif_model) {
+		var comp_list = cif_model.get_block('comp_list');
+		console.log(cif_model);
+		var first_block = comp_list.get('_chem_comp.id')[0];
+		var first_block = cif_model.get_block('comp_' + first_block);
+		console.log(first_block);
+    var model = new xtal.model.Model();
+    model.from_monlib(first_block);
+    initialize_model_object(model, model_id);
+  });
+}
+
 function requestPDB (pdb_id) {
-  console.log("HELLO");
-  console.log(pdb_id);
   if (pdb_id.length != 4) {
     $("The string '" + pdb_id + "' is not a valid PDB ID.").dialog({
       modal: true,
