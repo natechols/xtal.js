@@ -173,7 +173,7 @@ function readPDBfile (evt) {
     var fr = new FileReader();
     fr.onloadend = function() {
       var contents = this.result;
-      var model = new Model();
+      var model = new xtal.model.Model();
       model.from_pdb(contents);
       initialize_model_object(model, file.name);
     };
@@ -477,7 +477,7 @@ function loadFromPDB (evt) {
   req.onreadystatechange = function (aEvt) {
     if (req.readyState == 4) {
       if(req.status == 200) {
-        var model = new Model();
+        var model = new xtal.model.Model();
         model.from_pdb(req.responseText);
         initialize_model_object(model, pdb_id);
       } else {
@@ -541,9 +541,9 @@ function requestPDB (pdb_id) {
 
 // Load mmCIF
 function load_mmcif(pdb_mmcif, model_name) {
-  var parser = new xtal.cif.reader();
-  parser.load('phenix/' + pdb_mmcif, function(mmcif_model) {
-    var model = new Model();
+  var reader = new xtal.cif.Reader();
+  reader.load('phenix/' + pdb_mmcif, function(mmcif_model) {
+    var model = new xtal.model.Model();
     model.from_mmcif(mmcif_model.first_block());
     initialize_model_object(model, model_name);
   });
@@ -555,7 +555,7 @@ function loadPDBFromServer (pdb_file, model_name) {
   req.onreadystatechange = function (aEvt) {
     if (req.readyState == 4) {
       if(req.status == 200) {
-        var model = new Model();
+        var model = new xtal.model.Model();
         model.from_pdb(req.responseText);
         initialize_model_object(model, model_name);
       } else {

@@ -1,3 +1,5 @@
+var xtal = (function(module) {return module})(xtal||{});
+xtal.model = (function(module) {
 
 var max_bond_length = 1.99;
 var max_bond_length_SP = 2.2;
@@ -36,16 +38,12 @@ function Model (pdb_string) {
   this.from_mmcif = function(mmcif_model) {
     var chain_index = 0;
     var last_chain = null;
-
-    var m = mmcif_model.data;
-    console.log("from_mmcif model:", m);
-    for (var i=0; i<m['_atom_site.id'].length; i++) {
+		var atoms = mmcif_model.loop_dict('_atom_site');
+		for (var i=0;i<atoms.length;i++) {
       var atom = new Atom();
-      atom.from_mmcif_line(mmcif_model, i);
-      
+      atom.from_mmcif_line(atoms[i]);
       // Setup atom...
       this.atoms.push(atom);
-
       // Update the chain.
       if (atom.chain != last_chain) {
         chain_index++;
@@ -53,7 +51,6 @@ function Model (pdb_string) {
       this.chain_indices.push(chain_index);
       last_chain = atom.chain;
     }
-    console.log("loaded atoms:", i, this.atoms.length);
     // Update connectivity.
     if (this.atoms.length == 0) {
       throw Error("No atom records found.")
@@ -187,24 +184,24 @@ function Atom (pdb_line) {
   this.charge = 0;
   this.i_seq = "";
   
-  this.from_mmcif_line = function(m, i) {
-    if (m['_atom_site.group_PDB'][i] == "HETATM") {
+  this.from_mmcif_line = function(m) {
+    if (m['group_pdb'] == "HETATM") {
       this.hetero = true;
     }
-    this.name = m['_atom_site.label_atom_id'][i];
-    this.altloc = m['_atom_site.label_alt_id'][i];
-    this.resname = m['_atom_site.label_comp_id'][i];
-    this.chain = m['_atom_site.label_asym_id'][i];
-    this.resseq = m['_atom_site.label_entity_id'][i];
-    this.icode = m['_atom_site.label_seq_id'][i];
-    var x = m['_atom_site.Cartn_x'][i];
-    var y = m['_atom_site.Cartn_y'][i];
-    var z = m['_atom_site.Cartn_z'][i];
+    this.name = m['label_atom_id'];
+    this.altloc = m['label_alt_id'];
+    this.resname = m['label_comp_id'];
+    this.chain = m['label_asym_id'];
+    this.resseq = m['label_entity_id'];
+    this.icode = m['label_seq_id'];
+    var x = m['cartn_x'];
+    var y = m['cartn_y'];
+    var z = m['cartn_z'];
     this.xyz = [x, y, z];
-    this.occ = m['_atom_site.occupancy'][i];
-    this.b = m['_atom_site.B_iso_or_equiv'][i];
-    this.element = m['_atom_site.auth_atom_id'][i];
-    this.charge = m['_atom_site.pdbx_formal_charge'][i];
+    this.occ = m['occupancy'];
+    this.b = m['b_iso_or_equiv'];
+    this.element = m['auth_atom_id'];
+    this.charge = m['pdbx_formal_charge'];
   }
   
   // From PDB Line.
@@ -500,3 +497,11 @@ function extract_interesting_residues (model) {
   }
   return features;
 }
+
+// Exports into xtal.model
+return {
+	'Model': Model,
+	'Atom': Atom,
+	'Cubicles': Cubicles
+}
+})(xtal);
