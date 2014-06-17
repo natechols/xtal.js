@@ -64,6 +64,9 @@ cctbx.cif = (function(module) {
   cctbx_cif_reader.prototype.get_block = function(name) {
     return this.blocks[trim(name)];
   }
+  cctbx_cif_reader.prototype.first_block = function(name) {
+    return this.blocks[Object.keys(this.blocks)[0]];
+  }
   cctbx_cif_reader.prototype.load = function(url, callback) {
     /* Load data */
     // Create a new parser.
