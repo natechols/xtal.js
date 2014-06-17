@@ -64,6 +64,9 @@ xtal.cif = (function(module) {
   xtal_cif_reader.prototype.get_block = function(name) {
     return this.blocks[trim(name)];
   }
+  xtal_cif_reader.prototype.first_block = function(name) {
+    return this.blocks[Object.keys(this.blocks)[0]];
+  }
   xtal_cif_reader.prototype.load = function(url, callback) {
     /* Load data */
     // Create a new parser.
