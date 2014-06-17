@@ -541,7 +541,7 @@ function requestPDB (pdb_id) {
 
 // Load mmCIF
 function load_mmcif(pdb_mmcif, model_name) {
-  var parser = new cctbx.cif.reader();
+  var parser = new xtal.cif.reader();
   parser.load('phenix/' + pdb_mmcif, function(mmcif_model) {
     var model = new Model();
     model.from_mmcif(mmcif_model.first_block());
