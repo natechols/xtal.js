@@ -1,9 +1,9 @@
 /* 
-	CCTBX module for reading and writing mmCIF files.
+	xtal module for reading and writing mmCIF files.
 */
 
-var cctbx = (function(module) {return module})(cctbx||{});
-cctbx.cif = (function(module) {
+var xtal = (function(module) {return module})(xtal||{});
+xtal.cif = (function(module) {
 
   // Regular expressions for matching commands
 	// and data types.
@@ -53,22 +53,22 @@ cctbx.cif = (function(module) {
 	}
   
   /*********************************************/
-  function cctbx_cif_reader() {
+  function xtal_cif_reader() {
     /* mmCIF Reader */
 		// A dictionary of blocks.
     this.blocks = {};
   }
-  cctbx_cif_reader.prototype.add_block = function(block) {
+  xtal_cif_reader.prototype.add_block = function(block) {
     this.blocks[block.name] = block;
   }
-  cctbx_cif_reader.prototype.get_block = function(name) {
+  xtal_cif_reader.prototype.get_block = function(name) {
     return this.blocks[trim(name)];
   }
-  cctbx_cif_reader.prototype.load = function(url, callback) {
+  xtal_cif_reader.prototype.load = function(url, callback) {
     /* Load data */
     // Create a new parser.
   	var self = this;
-  	var parser = new cctbx_cif_parser(function(b){self.add_block(b)});
+  	var parser = new xtal_cif_parser(function(b){self.add_block(b)});
   	function listen(e) {
 			parser.parse_chunk(this.response);
       callback(self);
@@ -85,16 +85,16 @@ cctbx.cif = (function(module) {
   }
 
   /*********************************************/
-  function cctbx_cif_block(name) {
+  function xtal_cif_block(name) {
     /* mmCIF Data Block */
     this.name = trim(name);
     this.data = {};
   }
-  cctbx_cif_block.prototype.get = function(key) {
+  xtal_cif_block.prototype.get = function(key) {
 		/* Get a mmCIF value for key */
     return this.data[key]
   }
-  cctbx_cif_block.prototype.transpose = function(key) {
+  xtal_cif_block.prototype.transpose = function(key) {
 		/* Transpose a loop */
     var group = {};
     for (var i in this.data) {
@@ -104,7 +104,7 @@ cctbx.cif = (function(module) {
     }
     return group    
   }
-  cctbx_cif_block.prototype.group = function(key) {
+  xtal_cif_block.prototype.group = function(key) {
 		/* Return subset of keys with a common prefix key */
     var group = {};
     for (var i in this.data) {
@@ -114,14 +114,14 @@ cctbx.cif = (function(module) {
     }
     return group
   }
-  cctbx_cif_block.prototype.set = function(key, value) {
+  xtal_cif_block.prototype.set = function(key, value) {
 		/* Set a mmCIF key */
   	this.data[trim(key)] = value;
   }
-	cctbx_cif_block.prototype.append = function(key, value) {
+	xtal_cif_block.prototype.append = function(key, value) {
 		this.data[key].push(value);
 	}
-  cctbx_cif_block.prototype.append_row = function(keys, values) {
+  xtal_cif_block.prototype.append_row = function(keys, values) {
 		/* Add a row to a loop. keys and values must be same length. */
   	if (keys.length != values.length) {
   		return
@@ -130,13 +130,13 @@ cctbx.cif = (function(module) {
   		this.data[keys[i]].push(values[i]);
   	}
   }
-  cctbx_cif_block.prototype.add_loop_key = function(key) {
+  xtal_cif_block.prototype.add_loop_key = function(key) {
 		/* Initialize a key in a loop */
   	this.data[key] = [];
   }
 
   /*********************************************/
-  function cctbx_cif_parser(block_callback) {
+  function xtal_cif_parser(block_callback) {
   	/* mmCIF Parser
 	
   	Processes a stream of mmCIF statements. Each statement can update the 
@@ -159,7 +159,7 @@ cctbx.cif = (function(module) {
     // The current step
   	this.step = this.step_init; 
   }
-  cctbx_cif_parser.prototype.parse_chunk = function(input) {
+  xtal_cif_parser.prototype.parse_chunk = function(input) {
   	// Process the lines in the input data.
 		this.gen.add(input);
 		var line = this.gen.next();
@@ -169,7 +169,7 @@ cctbx.cif = (function(module) {
 		}
   }
   /***** Steps *****/
-  cctbx_cif_parser.prototype.step_init = function(line) {
+  xtal_cif_parser.prototype.step_init = function(line) {
   	// Initial step, or after returning from a loop or block.
   	var m = re_statement.exec(line);
   	if (m[1]) {
@@ -186,23 +186,23 @@ cctbx.cif = (function(module) {
   	// Next step: stay in initial state.
   	return this.step_init
   }
-  cctbx_cif_parser.prototype.step_block = function(line) {
+  xtal_cif_parser.prototype.step_block = function(line) {
     // Create a new block. 
   	var name = re_block.exec(line)[1];
-    this.block = new cctbx_cif_block(name);
+    this.block = new xtal_cif_block(name);
     // Call block_callback whenever a block is created.
     this.block_callback(this.block);
   	// Next step: step_block is always a single line command
   	return this.step_init
   }
-  cctbx_cif_parser.prototype.step_loop = function(line) {
+  xtal_cif_parser.prototype.step_loop = function(line) {
   	// Initialize the loop
   	this.loop = [];
 		this.loop_i = 0;
   	// Next step: add loop keys.
   	return this.step_loop_keys
   }
-  cctbx_cif_parser.prototype.step_loop_keys = function(line) {
+  xtal_cif_parser.prototype.step_loop_keys = function(line) {
   	var m = re_statement.exec(line);
   	if (m[3]) {
   		// Add the key to the loop.
@@ -218,7 +218,7 @@ cctbx.cif = (function(module) {
   		return this.step_loop_append(line);
   	}
   }
-  cctbx_cif_parser.prototype.step_loop_append = function(line) {
+  xtal_cif_parser.prototype.step_loop_append = function(line) {
   	var m = re_statement.exec(line);
   	if (m[0]) {
   		// Next step: a statement was found, return to initial step.
@@ -232,7 +232,7 @@ cctbx.cif = (function(module) {
 		}
   	return this.step_loop_append
   }
-  cctbx_cif_parser.prototype.step_tag = function(line) {
+  xtal_cif_parser.prototype.step_tag = function(line) {
   	var m = re_tag.exec(line);
   	if (!m[0]) {
   		// Next step: Return to init
@@ -250,7 +250,7 @@ cctbx.cif = (function(module) {
   	this.block.set(tag, value[0]);
   	return this.step_init
   }
-  cctbx_cif_parser.prototype.step_save = function(line) {
+  xtal_cif_parser.prototype.step_save = function(line) {
 		var m = re_statement.exec(line);
 		if (m[4]) {
 			// Next step: found end save_; break
@@ -258,7 +258,7 @@ cctbx.cif = (function(module) {
 		}
   	return this.step_save
   }
-  cctbx_cif_parser.prototype.parse_values = function(line) {
+  xtal_cif_parser.prototype.parse_values = function(line) {
     /* Process a string containing values.
     These may or may not be quoted with single or double quotes.
   
@@ -305,7 +305,7 @@ cctbx.cif = (function(module) {
   	}
   	return p
   }
-	cctbx_cif_parser.prototype.parse_value_text = function(line) {
+	xtal_cif_parser.prototype.parse_value_text = function(line) {
 		var text = "";
 		// Feed forward multi-line text comments...
 		while (line != null) {
@@ -322,10 +322,10 @@ cctbx.cif = (function(module) {
 	
 	
 	
-  // Export into cctbx.cif
+  // Export into xtal.cif
   return {
-    'parser':cctbx_cif_parser,
-    'block':cctbx_cif_block,
-    'reader':cctbx_cif_reader
+    'parser':xtal_cif_parser,
+    'block':xtal_cif_block,
+    'reader':xtal_cif_reader
   }
-})(cctbx);
+})(xtal);
