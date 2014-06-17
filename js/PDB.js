@@ -37,7 +37,7 @@ function Model (pdb_string) {
     var chain_index = 0;
     var last_chain = null;
 
-    var m = mmcif_model;
+    var m = mmcif_model.data;
     console.log("from_mmcif model:", m);
     for (var i=0; i<m['_atom_site.id'].length; i++) {
       var atom = new Atom();
