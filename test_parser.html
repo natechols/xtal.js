@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Test CIF parser</title>
+		<script src="js/jquery-2.1.0.min.js"></script>
+		<script src="js/xtal.cif.js"></script>
+</head>
+<body>
+	<h1>mmCIF JavaScript Parser</h1>
+	<div id="out">...</div>
+  <script>
+		function getParameterByName(name) {
+		    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+		    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+		        results = regex.exec(location.search);
+		    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+		}	
+		var pdbid = getParameterByName("pdbid") || "1yjp";
+		var reader = new xtal.cif.reader();
+		reader.load('phenix/' + pdbid + ".cif", function(model){
+			var block = model.first_block();
+			console.log(block);
+			var atoms = block.loop_dict('_atom_site');
+			console.log(atoms);
+    })
+  </script>
+</body>
+</html>
