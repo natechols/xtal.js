@@ -1,4 +1,3 @@
-
 /*
 
 JavaScript-based viewer for CCP4 loggraph plots.  Requires JQuery and D3.  This

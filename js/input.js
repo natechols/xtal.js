@@ -1,4 +1,3 @@
-
 Dropzone.options.phenixDropzone = {
   //maxFilesize: 200, 
   //maxThumbnailFilesize: 10,
