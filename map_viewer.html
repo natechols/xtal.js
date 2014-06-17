@@ -59,21 +59,24 @@
 			init_gui();
 			init_3d();
 			animate();
-
-			function getQueryPDB(variable) {
+			function getQuery(variable) {
 			  var query = window.location.search.substring(1);
 			  var vars = query.split("&");
 			  for (var i=0;i<vars.length;i++) {
 			    var pair = vars[i].split("=");
-			    if (pair[0] == "pdb_id") {
-			      requestPDB(pair[1]);
-			      return true;
-			    }
+					if (pair[0] == 'model') {
+						requestModel(pair[1]);
+						return true
+					}
+					if (pair[0] == 'monlib') {
+						requestmonlib(pair[1]);
+						return true
+					}
 			  }
 			  return false;
 			}
 		
-			if (!getQueryPDB()) {
+			if (!getQuery()) {
 			  expandPanel();
 			}
 		});
