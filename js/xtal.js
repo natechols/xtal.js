@@ -1,3 +1,4 @@
+var xtal = (function(module) {
 
 //----------------------------------------------------------------------
 // UNIT CELL
@@ -287,3 +288,23 @@ function midpoint (xyz1, xyz2) {
     xyz1[2] + (xyz2[2] - xyz1[2]) / 2
   ];
 }
+
+// Exports
+return {
+	'UnitCell': UnitCell,
+	'ccp4_map': ccp4_map,
+	'midpoint': midpoint,
+	'distance': distance,
+	'deg2rad': deg2rad,
+	// 'fractionalize': fractionalize,
+	// 'orthogonalize': orthogonalize,
+	// 'unit_cell_as_str': unit_cell_as_str,
+	// 'map_grid': map_grid,
+	// 'grid2index': grid2index,
+	// 'grid2frac': grid2frac,
+	// 'frac2grid': frac2grid,
+	// 'set_grid_value': set_grid_value,
+	// 'get_grid_value': get_grid_value,
+	// 'cartesian_map_data': cartesian_map_data,
+}
+})(xtal||{});

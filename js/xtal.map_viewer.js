@@ -1,4 +1,17 @@
-// MAIN
+/*
+
+xtal.js Map & Model Viewer.
+
+Exports:
+
+*/
+var xtal = (function(module) {return module})(xtal||{});
+xtal.viewer = (function(module) {
+	// Exports
+	return {
+	}
+})(xtal);
+
 
 // standard global variables
 var orthographic = false;
@@ -128,7 +141,7 @@ function readCCP4Map(evt) {
 
 function initialize_map_object (mapdata, map_name, diff_map_flag,
     anom_map_flag) {
-  var map = new ccp4_map(mapdata);
+  var map = new xtal.ccp4_map(mapdata);
   if (! diff_map_flag) {
     var diff_map_flag = ((map_name == "mFo-DFc") ||
       (map_name.indexOf("_mFo-DFc") != -1)); // XXX HACK

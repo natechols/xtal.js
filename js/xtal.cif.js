@@ -1,7 +1,13 @@
 /* 
-	xtal module for reading and writing mmCIF files.
-*/
 
+xtal.js Support for Crystallographic Information Format.
+
+Exports:
+	Reader
+	Block
+	Parser
+
+*/
 var xtal = (function(module) {return module})(xtal||{});
 xtal.cif = (function(module) {
 

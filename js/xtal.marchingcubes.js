@@ -1,6 +1,14 @@
+/*
 
-// marching cubes algorithm
-// based on http://stemkoski.github.io/Three.js/Marching-Cubes.html
+xtal.js Marching Cubes.
+based on http://stemkoski.github.io/Three.js/Marching-Cubes.html
+
+Exports:
+	isosurface
+
+*/
+var xtal = (function(module) {return module})(xtal||{});
+xtal.marchingcubes = (function(module) {
 
 /////////////////////////////////////
 // Marching cubes lookup tables
@@ -9,8 +17,7 @@
 // These tables are straight from Paul Bourke's page:
 // http://local.wasp.uwa.edu.au/~pbourke/geometry/polygonise/
 // who in turn got them from Cory Gene Bloyd.
-
-THREE.edgeTable = new Int32Array([
+edgeTable = new Int32Array([
 0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
 0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
 0x190, 0x99 , 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c,
@@ -44,7 +51,7 @@ THREE.edgeTable = new Int32Array([
 0xf00, 0xe09, 0xd03, 0xc0a, 0xb06, 0xa0f, 0x905, 0x80c,
 0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0])
 
-THREE.triTable = new Int32Array([
+triTable = new Int32Array([
 -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 0, 1, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -354,7 +361,7 @@ function isosurface (points, values, n_real, isolevel) {
     n++;
 
     // bits = 12 bit number, indicates which edges are crossed by the isosurface
-    var edge_mask = THREE.edgeTable[ cubeindex ];
+    var edge_mask = edgeTable[ cubeindex ];
 
     // if none are crossed, proceed to next iteration
     if ( edge_mask === 0 ) continue;
@@ -375,11 +382,11 @@ function isosurface (points, values, n_real, isolevel) {
     var i = 0;
     cubeindex <<= 4;  // multiply by 16...
 
-    while ( THREE.triTable[ cubeindex + i ] != -1 )
+    while ( triTable[ cubeindex + i ] != -1 )
     {
-      var index1 = THREE.triTable[cubeindex + i];
-      var index2 = THREE.triTable[cubeindex + i + 1];
-      var index3 = THREE.triTable[cubeindex + i + 2];
+      var index1 = triTable[cubeindex + i];
+      var index2 = triTable[cubeindex + i + 1];
+      var index3 = triTable[cubeindex + i + 2];
 
       geometry.vertices.push( vlist[index1].clone() );
       geometry.vertices.push( vlist[index2].clone() );
@@ -402,3 +409,10 @@ function isosurface (points, values, n_real, isolevel) {
   geometry.computeVertexNormals();
   return geometry;
 }
+
+
+// Exports
+return {
+	'isosurface': isosurface
+}
+})(xtal);

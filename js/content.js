@@ -70,7 +70,7 @@ function display_section (i_section) {
       var graph_id = "graph" + i_graph;
       display.append($("<div/>").attr("id", graph_id).attr("class",
         "loggraph"));
-      var graph = new Loggraph("#" + graph_id, [ block.content ], i_graph,
+      var graph = new xtal.loggraph.Loggraph("#" + graph_id, [ block.content ], i_graph,
         true);
       i_graph++;
       display.append($("<br/>"));

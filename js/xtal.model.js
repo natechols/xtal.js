@@ -1,3 +1,13 @@
+/*
+
+xtal.js PDB & CIF models.
+
+Exports:
+	Atom
+	Model
+	Cubicle
+
+*/
 var xtal = (function(module) {return module})(xtal||{});
 xtal.model = (function(module) {
 
@@ -113,7 +123,7 @@ function Model (pdb_string) {
         var beta = parseFloat(line.substring(40, 47));
         var gamma = parseFloat(line.substring(47, 54));
         var sg_symbol = line.substring(55, 66);
-        this.unit_cell = new UnitCell(a, b, c, alpha, beta, gamma);
+        this.unit_cell = new xtal.UnitCell(a, b, c, alpha, beta, gamma);
       } else if (rec_type.substring(0, 3) == "TER") {
         chain_index++;
       }
@@ -269,10 +279,10 @@ function Atom (pdb_line) {
   }
   
   this.distance = function (other) {
-    return distance(this.xyz, other.xyz);
+    return xtal.distance(this.xyz, other.xyz);
   }
   this.midpoint = function (other) {
-    return midpoint(this.xyz, other.xyz);
+    return xtal.midpoint(this.xyz, other.xyz);
   }
   this.is_hydrogen = function () {
     return this.element == "H" || this.element == "D";

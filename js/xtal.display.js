@@ -1,5 +1,21 @@
-// External dependencies: Three.js
-// Internal dependencies: MarchingCubes.js, xtal.js, PDB.js
+/*
+
+xtal.js Display utilities.
+
+External dependencies: Three.js
+Internal dependencies: xtal.marchingcubes.js, xtal.js, xtal.model.js
+
+Exports:
+
+*/
+var xtal = (function(module) {return module})(xtal||{});
+xtal.display = (function(module) {
+	// Exports
+	return {
+	}
+})(xtal);
+
+
 
 //----------------------------------------------------------------------
 // MAP DISPLAY
@@ -67,7 +83,7 @@ function update_map_isolevel (map, isolevel, radius)
     colors = [ map.parameters['color'], map.parameters['color-'] ];
   }
   for (var i = 0; i < levels.length; i++) {
-    geometry = isosurface(map.display_data.points,
+    geometry = xtal.marchingcubes.isosurface(map.display_data.points,
       map.display_data.values,
       map.display_data.size,
       levels[i] * map.parameters['isolevel']);
