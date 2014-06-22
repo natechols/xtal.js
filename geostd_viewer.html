@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Demo</title>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="phenix.mmcif.js"></script>
+    <script src="elbow.js"></script>
+  <link rel="stylesheet" type="text/css" href="/css/interface.css">
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/overcast/jquery-ui.css">
+
+</head>
+<body>
+  <h1>eLBOW restraints</h1>
+
+  <div id="elbow_grid" class="ui-tabs"></div>
+
+    <script>
+      var reader = new phenix_mmcif_parser();
+      reader.load("data_AGS.cif", display_grid);
+      // XXX I'm confused - how do I access the data object?
+      //display_grid(reader.data);
+    </script>
+</body>
+</html>

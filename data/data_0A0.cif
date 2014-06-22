@@ -1,0 +1,162 @@
+# electronic Ligand Builder and Optimisation Workbench (eLBOW)
+#   - a module of PHENIX version dev-1137 (Mon Aug 22 05:16:00 2012)
+#   - file written: Tue Aug 28 14:40:10 2012
+#
+#   Inital geometry file: a 51 line input string
+#   Ligand name: 2-methyl-L-aspartic acid
+#   Quantum optimisation: True
+#   Method: AM1
+#   Random seed: 3628800
+#   SMILES string: C[C@](N)(CC(O)=O)C(O)=O
+#
+data_comp_list
+loop_
+_chem_comp.id
+_chem_comp.three_letter_code
+_chem_comp.name
+_chem_comp.group
+_chem_comp.number_atoms_all
+_chem_comp.number_atoms_nh
+_chem_comp.desc_level
+_chem_comp.initial_date
+_chem_comp.modified_date
+_chem_comp.source
+0A0        0A0 '2-methyl-L-aspartic acid ' L-peptide 19 10 .
+2012-08-28 2012-08-28
+;
+CIF prepared directly in eLBOW
+;
+#
+data_comp_0A0
+#
+loop_
+_chem_comp_atom.comp_id
+_chem_comp_atom.atom_id
+_chem_comp_atom.type_symbol
+_chem_comp_atom.type_energy
+_chem_comp_atom.partial_charge
+_chem_comp_atom.x
+_chem_comp_atom.y
+_chem_comp_atom.z
+0A0         N      N   NH2   .          0.8520   -1.0116    1.4763
+0A0         CA     C   CT    .          0.7363   -0.8119    0.0407
+0A0         C      C   C     .          1.2723    0.5716   -0.3446
+0A0         O      O   O     .          1.8770    0.8914   -1.3693
+0A0         CB     C   CH2   .         -0.7045   -0.9102   -0.5306
+0A0         CG     C   C     .         -1.7120   -0.1424    0.2597
+0A0         OD1    O   O     .         -1.9376   -0.1708    1.4736
+0A0         OD2    O   OH1   .         -2.4754    0.6997   -0.4888
+0A0         OXT    O   OH1   .          1.0415    1.5522    0.5705
+0A0         CM     C   CH3   .          1.5784   -1.8488   -0.7276
+0A0        HN1     H   HNH2  .          0.6512   -0.1597    1.9683
+0A0        HN2     H   HNH2  .          0.2192   -1.7285    1.7724
+0A0        HBC1    H   HCH2  .         -0.7060   -0.5577   -1.5957
+0A0        HBC2    H   HCH2  .         -1.0256   -1.9873   -0.5186
+0A0        HMC1    H   HCH3  .          1.3330   -2.8806   -0.3833
+0A0        HMC2    H   HCH3  .          1.3637   -1.7601   -1.8192
+0A0        HMC3    H   HCH3  .          2.6663   -1.6564   -0.5629
+0A0        H8      H   HOH1  .         -3.1072    1.1662    0.0841
+0A0        HXT     H   HOH1  .          1.4114    2.3919    0.2499
+#
+loop_
+_chem_comp_bond.comp_id
+_chem_comp_bond.atom_id_1
+_chem_comp_bond.atom_id_2
+_chem_comp_bond.type
+_chem_comp_bond.value_dist
+_chem_comp_bond.value_dist_esd
+0A0   N       CA    single        1.454 0.020
+0A0   N      HN1    single        1.004 0.020
+0A0   N      HN2    single        1.001 0.020
+0A0   CA      C     single        1.533 0.020
+0A0   CA      CB    single        1.553 0.020
+0A0   CA      CM    single        1.541 0.020
+0A0   C       O     double        1.232 0.020
+0A0   C       OXT   single        1.361 0.020
+0A0   CB      CG    single        1.493 0.020
+0A0   CB     HBC1   single        1.122 0.020
+0A0   CB     HBC2   single        1.124 0.020
+0A0   CG      OD1   double        1.235 0.020
+0A0   CG      OD2   single        1.361 0.020
+0A0   CM     HMC1   single        1.115 0.020
+0A0   CM     HMC2   single        1.116 0.020
+0A0   CM     HMC3   single        1.117 0.020
+0A0   OD2    H8     single        0.972 0.020
+0A0   OXT    HXT    single        0.972 0.020
+#
+loop_
+_chem_comp_angle.comp_id
+_chem_comp_angle.atom_id_1
+_chem_comp_angle.atom_id_2
+_chem_comp_angle.atom_id_3
+_chem_comp_angle.value_angle
+_chem_comp_angle.value_angle_esd
+0A0  HN2      N      HN1          109.65 3.000
+0A0  HN2      N       CA          109.88 3.000
+0A0  HN1      N       CA          110.57 3.000
+0A0   CM      CA      CB          106.32 3.000
+0A0   CM      CA      C           106.91 3.000
+0A0   CB      CA      C           106.80 3.000
+0A0   CM      CA      N           110.88 3.000
+0A0   CB      CA      N           115.36 3.000
+0A0   C       CA      N           110.14 3.000
+0A0   OXT     C       O           117.10 3.000
+0A0   OXT     C       CA          114.96 3.000
+0A0   O       C       CA          127.95 3.000
+0A0  HBC2     CB     HBC1         108.11 3.000
+0A0  HBC2     CB      CG          107.12 3.000
+0A0  HBC1     CB      CG          109.88 3.000
+0A0  HBC2     CB      CA          108.77 3.000
+0A0  HBC1     CB      CA          109.31 3.000
+0A0   CG      CB      CA          113.50 3.000
+0A0   OD2     CG      OD1         116.89 3.000
+0A0   OD2     CG      CB          113.93 3.000
+0A0   OD1     CG      CB          129.18 3.000
+0A0  H8       OD2     CG          109.72 3.000
+0A0  HXT      OXT     C           109.64 3.000
+0A0  HMC3     CM     HMC2         108.54 3.000
+0A0  HMC3     CM     HMC1         109.16 3.000
+0A0  HMC2     CM     HMC1         109.47 3.000
+0A0  HMC3     CM      CA          110.05 3.000
+0A0  HMC2     CM      CA          109.21 3.000
+0A0  HMC1     CM      CA          110.39 3.000
+#
+loop_
+_chem_comp_tor.comp_id
+_chem_comp_tor.id
+_chem_comp_tor.atom_id_1
+_chem_comp_tor.atom_id_2
+_chem_comp_tor.atom_id_3
+_chem_comp_tor.atom_id_4
+_chem_comp_tor.value_angle
+_chem_comp_tor.value_angle_esd
+_chem_comp_tor.period
+0A0 CONST_01       HXT     OXT     C       CA          180.00   0.0 0
+0A0 CONST_02       H8      OD2     CG      CB          180.00   0.0 0
+0A0 Var_01         OD1     CG      CB      CA          -51.50  30.0 3
+#
+loop_
+_chem_comp_chir.comp_id
+_chem_comp_chir.id
+_chem_comp_chir.atom_id_centre
+_chem_comp_chir.atom_id_1
+_chem_comp_chir.atom_id_2
+_chem_comp_chir.atom_id_3
+_chem_comp_chir.volume_sign
+0A0 chir_01   CA      C       CB      CM    negativ
+#
+loop_
+_chem_comp_plane_atom.comp_id
+_chem_comp_plane_atom.plane_id
+_chem_comp_plane_atom.atom_id
+_chem_comp_plane_atom.dist_esd
+0A0 plan-1     CA 0.020
+0A0 plan-1      C 0.020
+0A0 plan-1      O 0.020
+0A0 plan-1    OXT 0.020
+0A0 plan-1    HXT 0.020
+0A0 plan-2     CB 0.020
+0A0 plan-2     CG 0.020
+0A0 plan-2    OD1 0.020
+0A0 plan-2    OD2 0.020
+0A0 plan-2     H8 0.020

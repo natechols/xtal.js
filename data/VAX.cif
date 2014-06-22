@@ -1,0 +1,1331 @@
+#
+data_comp_list
+loop_
+_chem_comp.id
+_chem_comp.three_letter_code
+_chem_comp.name
+_chem_comp.group
+_chem_comp.number_atoms_all
+_chem_comp.number_atoms_nh
+_chem_comp.desc_level
+VAX      VAX '4-EPI-VANCOSAMINYL DERIVATIVE OF VAN' non-polymer       202 111 .
+#
+data_comp_VAX
+#
+loop_
+_chem_comp_atom.comp_id
+_chem_comp_atom.atom_id
+_chem_comp_atom.type_symbol
+_chem_comp_atom.type_energy
+_chem_comp_atom.partial_charge
+_chem_comp_atom.x
+_chem_comp_atom.y
+_chem_comp_atom.z
+ VAX           O80    O    OC       -0.500      0.000    0.000    0.000
+ VAX           C70    C    C         0.000      0.759    0.841   -0.532
+ VAX           O71    O    OC       -0.500      1.787    0.523   -1.176
+ VAX           C69    C    CH1       0.000      0.322    2.274   -0.519
+ VAX           H69    H    H         0.000      0.978    2.928   -1.112
+ VAX           C72    C    CR6       0.000      0.147    2.746    0.892
+ VAX           C73    C    CR6       0.000     -0.923    3.703    1.318
+ VAX           C75    C    CR6       0.000     -0.916    4.011    2.814
+ VAX           C76    C    CR16      0.000      0.034    3.440    3.699
+ VAX           H76    H    H         0.000      0.012    3.687    4.753
+ VAX           C77    C    CR6       0.000      0.980    2.574    3.213
+ VAX           C74    C    CR16      0.000      1.022    2.247    1.878
+ VAX           H74    H    H         0.000      1.788    1.550    1.559
+ VAX           O78    O    OH1       0.000      1.874    2.068    4.115
+ VAX           HO8    H    H         0.000      2.488    1.474    3.662
+ VAX           O79    O    OH1       0.000     -1.711    4.828    3.610
+ VAX           HO7    H    H         0.000     -1.417    4.776    4.532
+ VAX           C50    C    CR6       0.000     -1.874    4.274    0.473
+ VAX           C52    C    CR6       0.000     -2.871    5.126    1.132
+ VAX           C51    C    CR16      0.000     -3.844    5.626    0.355
+ VAX           H51    H    H         0.000     -4.605    6.274    0.773
+ VAX           C49    C    CR16      0.000     -3.858    5.306   -0.966
+ VAX           H49    H    H         0.000     -4.739    5.684   -1.470
+ VAX           O53    O    OH1       0.000     -3.173    5.594    2.374
+ VAX           HO3    H    H         0.000     -2.528    5.256    3.011
+ VAX           C48    C    CR16      0.000     -2.016    4.045   -0.937
+ VAX           H48    H    H         0.000     -1.300    3.378   -1.402
+ VAX           C47    C    CR6       0.000     -3.040    4.630   -1.805
+ VAX           N68    N    NH1       0.000     -1.053    2.226   -1.033
+ VAX           HN8    H    H         0.000     -1.752    2.713   -0.491
+ VAX           C56    C    C         0.000     -1.485    1.608   -2.144
+ VAX           O57    O    O         0.000     -0.702    0.872   -2.732
+ VAX           C55    C    CH1       0.000     -2.841    1.877   -2.774
+ VAX           H55    H    H         0.000     -3.327    2.609   -2.114
+ VAX           C58    C    CH1       0.000     -3.744    0.666   -2.760
+ VAX           H58    H    H         0.000     -3.635    0.142   -1.800
+ VAX           O59    O    O2        0.000     -3.429   -0.205   -3.798
+ VAX           C81    C    CH1       0.000     -3.886   -1.516   -3.689
+ VAX           H81    H    H         0.000     -4.969   -1.532   -3.875
+ VAX           O82    O    O2        0.000     -3.638   -2.009   -2.397
+ VAX           C83    C    CH1       0.000     -2.276   -2.139   -2.037
+ VAX           H83    H    H         0.000     -1.846   -1.130   -1.966
+ VAX           C85    C    CH1       0.000     -1.453   -2.927   -3.033
+ VAX           H85    H    H         0.000     -1.732   -3.987   -2.955
+ VAX           C87    C    CT        0.000     -1.706   -2.463   -4.462
+ VAX           C90    C    CH2       0.000     -3.198   -2.356   -4.740
+ VAX           H902   H    H         0.000     -3.626   -3.360   -4.743
+ VAX           H901   H    H         0.000     -3.338   -1.899   -5.722
+ VAX           C89    C    CH3       0.000     -1.026   -1.151   -4.821
+ VAX           H893   H    H         0.000      0.006   -1.215   -4.593
+ VAX           H892   H    H         0.000     -1.148   -0.963   -5.856
+ VAX           H891   H    H         0.000     -1.463   -0.364   -4.264
+ VAX           N88    N    NT3       1.000     -1.119   -3.434   -5.422
+ VAX           HN83   H    H         0.000     -0.102   -3.506   -5.258
+ VAX           HN82   H    H         0.000     -1.557   -4.360   -5.286
+ VAX           HN81   H    H         0.000     -1.291   -3.110   -6.387
+ VAX           O86    O    OH1       0.000     -0.070   -2.789   -2.658
+ VAX           HO6    H    H         0.000      0.398   -3.616   -2.838
+ VAX           C84    C    CH3       0.000     -2.296   -2.743   -0.630
+ VAX           H843   H    H         0.000     -2.789   -3.681   -0.653
+ VAX           H842   H    H         0.000     -1.303   -2.876   -0.286
+ VAX           H841   H    H         0.000     -2.811   -2.092    0.028
+ VAX           C60    C    CR6       0.000     -5.159    1.098   -2.927
+ VAX           C61    C    CR16      0.000     -5.722    1.031   -4.205
+ VAX           H61    H    H         0.000     -5.105    0.698   -5.031
+ VAX           C63    C    CR16      0.000     -7.033    1.372   -4.453
+ VAX           H63    H    H         0.000     -7.423    1.305   -5.461
+ VAX           C65    C    CR6       0.000     -7.848    1.798   -3.435
+ VAX           C64    C    CR6       0.000     -7.293    1.852   -2.069
+ VAX           C62    C    CR16      0.000     -5.963    1.504   -1.844
+ VAX           H62    H    H         0.000     -5.550    1.545   -0.844
+ VAX           CL6    CL   CL        0.000     -8.306    2.402   -0.699
+ VAX           O66    O    O2        0.000     -9.150    2.105   -3.728
+ VAX           C39    C    CR6       0.000     -9.567    3.413   -3.895
+ VAX           C37    C    CR16      0.000     -8.634    4.428   -4.076
+ VAX           H37    H    H         0.000     -7.609    4.077   -4.067
+ VAX           C41    C    CR6       0.000    -10.955    3.842   -3.856
+ VAX           O42    O    O2        0.000    -11.747    2.694   -3.661
+ VAX           'C1''  C    CH1       0.000    -12.260    2.277   -2.363
+ VAX           'H1''  H    H         0.000    -12.639    3.263   -2.058
+ VAX           'C2''  C    CH1       0.000    -13.554    1.536   -2.185
+ VAX           'H2''  H    H         0.000    -13.470    0.486   -2.499
+ VAX           'C3''  C    CH1       0.000    -14.090    1.667   -0.703
+ VAX           'H3''  H    H         0.000    -14.610    2.622   -0.543
+ VAX           'C4''  C    CH1       0.000    -13.025    1.418    0.372
+ VAX           'H4''  H    H         0.000    -12.678    0.379    0.282
+ VAX           'C5''  C    CH1       0.000    -11.853    2.328    0.147
+ VAX           'H5''  H    H         0.000    -12.186    3.372    0.227
+ VAX           'C6''  C    CH2       0.000    -10.686    2.090    1.126
+ VAX           'H6'1' H    H         0.000    -11.053    2.330    2.127
+ VAX           'H6'2' H    H         0.000     -9.891    2.787    0.854
+ VAX           'O6''  O    OH1       0.000    -10.178    0.756    1.112
+ VAX           'HO6'' H    H         0.000     -9.447    0.684    1.740
+ VAX           'O5''  O    O2        0.000    -11.332    2.090   -1.206
+ VAX           'O4''  O    OH1       0.000    -13.556    1.604    1.692
+ VAX           'HO4'' H    H         0.000    -13.877    0.758    2.033
+ VAX           'O3''  O    OH1       0.000    -14.984    0.550   -0.573
+ VAX           'HO3'' H    H         0.000    -15.731    0.798   -0.011
+ VAX           'O2''  O    O2        0.000    -14.574    2.225   -2.907
+ VAX           C1"    C    CH1       0.000    -15.110    1.561   -4.019
+ VAX           H1"    H    H         0.000    -14.909    0.488   -3.891
+ VAX           C2"    C    CH2       0.000    -16.615    1.744   -4.046
+ VAX           H2"1   H    H         0.000    -16.971    1.566   -3.029
+ VAX           H2"2   H    H         0.000    -17.013    0.973   -4.709
+ VAX           C3"    C    CT        0.000    -17.079    3.104   -4.515
+ VAX           C3M    C    CH3       0.000    -16.985    4.143   -3.405
+ VAX           H3M3   H    H         0.000    -15.969    4.290   -3.145
+ VAX           H3M2   H    H         0.000    -17.400    5.057   -3.741
+ VAX           H3M1   H    H         0.000    -17.521    3.802   -2.557
+ VAX           C4"    C    CH1       0.000    -16.390    3.476   -5.817
+ VAX           H4"    H    H         0.000    -16.796    2.861   -6.632
+ VAX           C5"    C    CH1       0.000    -14.904    3.239   -5.705
+ VAX           H5"    H    H         0.000    -14.539    3.970   -4.970
+ VAX           C5M    C    CH3       0.000    -14.114    3.507   -6.987
+ VAX           H5M3   H    H         0.000    -13.097    3.250   -6.837
+ VAX           H5M2   H    H         0.000    -14.511    2.924   -7.777
+ VAX           H5M1   H    H         0.000    -14.184    4.534   -7.238
+ VAX           O5"    O    O2        0.000    -14.487    1.970   -5.227
+ VAX           O4"    O    OH1       0.000    -16.570    4.872   -6.139
+ VAX           HO4"   H    H         0.000    -17.336    4.975   -6.722
+ VAX           N3"    N    NT3       1.000    -18.534    3.028   -4.782
+ VAX           HN33   H    H         0.000    -18.869    3.945   -5.118
+ VAX           HN32   H    H         0.000    -18.712    2.309   -5.502
+ VAX           HN31   H    H         0.000    -19.029    2.776   -3.912
+ VAX           C40    C    CR6       0.000    -11.087    5.339   -4.018
+ VAX           C38    C    CR16      0.000    -10.082    6.286   -4.232
+ VAX           H38    H    H         0.000    -10.314    7.336   -4.365
+ VAX           C36    C    CR6       0.000     -8.748    5.815   -4.267
+ VAX           O22    O    O2        0.000    -12.270    5.958   -3.995
+ VAX           C21    C    CR6       0.000    -12.603    7.232   -3.631
+ VAX           C20    C    CR16      0.000    -12.529    7.769   -2.383
+ VAX           H20    H    H         0.000    -12.145    7.175   -1.562
+ VAX           C18    C    CR16      0.000    -12.947    9.091   -2.155
+ VAX           H18    H    H         0.000    -12.862    9.479   -1.147
+ VAX           C19    C    CR6       0.000    -13.160    8.142   -4.663
+ VAX           CL2    CL   CL        0.000    -13.322    7.501   -6.332
+ VAX           C17    C    CR16      0.000    -13.548    9.477   -4.430
+ VAX           H17    H    H         0.000    -13.894   10.103   -5.243
+ VAX           C16    C    CR6       0.000    -13.478    9.961   -3.159
+ VAX           C14    C    CH1       0.000    -13.659   11.318   -2.580
+ VAX           H14    H    H         0.000    -13.542   12.089   -3.354
+ VAX           O15    O    OH1       0.000    -14.869   11.620   -1.696
+ VAX           HO5    H    H         0.000    -14.934   10.975   -0.969
+ VAX           N54    N    NH1       0.000     -2.715    2.552   -4.081
+ VAX           HN5    H    H         0.000     -2.280    2.023   -4.824
+ VAX           C45    C    C         0.000     -3.129    3.829   -4.395
+ VAX           O46    O    O         0.000     -3.121    4.195   -5.567
+ VAX           C44    C    CH1       0.000     -3.855    4.482   -3.237
+ VAX           H44    H    H         0.000     -4.457    3.608   -2.953
+ VAX           N43    N    NH1       0.000     -4.974    5.339   -3.639
+ VAX           HN3    H    H         0.000     -4.762    5.698   -4.559
+ VAX           C34    C    C         0.000     -6.110    5.817   -3.297
+ VAX           O35    O    O         0.000     -6.526    5.733   -2.147
+ VAX           C33    C    CH1       0.000     -7.176    6.599   -4.117
+ VAX           H33    H    H         0.000     -6.782    6.883   -5.103
+ VAX           N32    N    NH1       0.000     -7.534    7.806   -3.317
+ VAX           HN2    H    H         0.000     -7.164    7.824   -2.377
+ VAX           C26    C    C         0.000     -8.278    8.879   -3.662
+ VAX           O27    O    O         0.000     -8.627    8.933   -4.840
+ VAX           C25    C    CH1       0.000     -8.688   10.063   -2.776
+ VAX           H25    H    H         0.000     -8.471   10.982   -3.338
+ VAX           C28    C    CH2       0.000     -7.687    9.985   -1.633
+ VAX           H281   H    H         0.000     -6.663   10.085   -1.999
+ VAX           H282   H    H         0.000     -7.786    9.045   -1.086
+ VAX           C29    C    C         0.000     -8.004   11.116   -0.734
+ VAX           N31    N    NH2       0.000     -8.583   10.861    0.428
+ VAX           HN12   H    H         0.000     -8.807   11.620    1.054
+ VAX           HN11   H    H         0.000     -8.799    9.910    0.682
+ VAX           O30    O    O         0.000     -7.719   12.255   -1.081
+ VAX           N24    N    NH1       0.000    -10.103   10.109   -2.398
+ VAX           HN4    H    H         0.000    -10.514    9.231   -2.113
+ VAX           C12    C    C         0.000    -10.930   11.184   -2.384
+ VAX           O13    O    O         0.000    -10.591   12.211   -2.998
+ VAX           C11    C    CH1       0.000    -12.312   11.235   -1.630
+ VAX           H11    H    H         0.000    -12.315   12.050   -0.893
+ VAX           N10    N    NH1       0.000    -12.268    9.947   -0.959
+ VAX           HN0    H    H         0.000    -11.920    9.232   -1.581
+ VAX           C4     C    C         0.000    -12.550    9.439    0.226
+ VAX           O5     O    O         0.000    -12.665   10.241    1.148
+ VAX           C3     C    CH1       0.000    -12.755    7.980    0.596
+ VAX           H3     H    H         0.000    -12.991    7.428   -0.324
+ VAX           N2     N    NT2       1.000    -13.938    7.909    1.486
+ VAX           HN21   H    H         0.000    -13.849    8.579    2.267
+ VAX           HN22   H    H         0.000    -14.056    6.955    1.863
+ VAX           C1     C    CH3       0.000    -15.134    8.269    0.649
+ VAX           H1_3   H    H         0.000    -15.231    7.584   -0.156
+ VAX           H1_2   H    H         0.000    -16.014    8.234    1.242
+ VAX           H1_1   H    H         0.000    -15.019    9.249    0.257
+ VAX           C6     C    CH2       0.000    -11.570    7.290    1.268
+ VAX           H6_1   H    H         0.000    -11.464    7.728    2.263
+ VAX           H6_2   H    H         0.000    -10.684    7.522    0.674
+ VAX           C7     C    CH1       0.000    -11.720    5.793    1.388
+ VAX           H7     H    H         0.000    -12.441    5.591    2.193
+ VAX           C9     C    CH3       0.000    -10.339    5.450    1.906
+ VAX           H9_3   H    H         0.000    -10.278    4.408    2.075
+ VAX           H9_2   H    H         0.000     -9.615    5.737    1.189
+ VAX           H9_1   H    H         0.000    -10.166    5.968    2.812
+ VAX           C8     C    CH3       0.000    -12.240    5.170    0.143
+ VAX           H8_3   H    H         0.000    -13.172    5.604   -0.097
+ VAX           H8_2   H    H         0.000    -11.552    5.340   -0.640
+ VAX           H8_1   H    H         0.000    -12.357    4.132    0.300
+loop_
+_chem_comp_tree.comp_id
+_chem_comp_tree.atom_id
+_chem_comp_tree.atom_back
+_chem_comp_tree.atom_forward
+_chem_comp_tree.connect_type
+ VAX      O80    n/a    C70    START
+ VAX      C70    O80    C69    .
+ VAX      O71    C70    .      .
+ VAX      C69    C70    N68    .
+ VAX      H69    C69    .      .
+ VAX      C72    C69    C73    .
+ VAX      C73    C72    C50    .
+ VAX      C75    C73    O79    .
+ VAX      C76    C75    C77    .
+ VAX      H76    C76    .      .
+ VAX      C77    C76    O78    .
+ VAX      C74    C77    H74    .
+ VAX      H74    C74    .      .
+ VAX      O78    C77    HO8    .
+ VAX      HO8    O78    .      .
+ VAX      O79    C75    HO7    .
+ VAX      HO7    O79    .      .
+ VAX      C50    C73    C48    .
+ VAX      C52    C50    O53    .
+ VAX      C51    C52    C49    .
+ VAX      H51    C51    .      .
+ VAX      C49    C51    H49    .
+ VAX      H49    C49    .      .
+ VAX      O53    C52    HO3    .
+ VAX      HO3    O53    .      .
+ VAX      C48    C50    C47    .
+ VAX      H48    C48    .      .
+ VAX      C47    C48    .      .
+ VAX      N68    C69    C56    .
+ VAX      HN8    N68    .      .
+ VAX      C56    N68    C55    .
+ VAX      O57    C56    .      .
+ VAX      C55    C56    N54    .
+ VAX      H55    C55    .      .
+ VAX      C58    C55    C60    .
+ VAX      H58    C58    .      .
+ VAX      O59    C58    C81    .
+ VAX      C81    O59    O82    .
+ VAX      H81    C81    .      .
+ VAX      O82    C81    C83    .
+ VAX      C83    O82    C84    .
+ VAX      H83    C83    .      .
+ VAX      C85    C83    O86    .
+ VAX      H85    C85    .      .
+ VAX      C87    C85    N88    .
+ VAX      C90    C87    H901   .
+ VAX      H902   C90    .      .
+ VAX      H901   C90    .      .
+ VAX      C89    C87    H891   .
+ VAX      H893   C89    .      .
+ VAX      H892   C89    .      .
+ VAX      H891   C89    .      .
+ VAX      N88    C87    HN81   .
+ VAX      HN83   N88    .      .
+ VAX      HN82   N88    .      .
+ VAX      HN81   N88    .      .
+ VAX      O86    C85    HO6    .
+ VAX      HO6    O86    .      .
+ VAX      C84    C83    H841   .
+ VAX      H843   C84    .      .
+ VAX      H842   C84    .      .
+ VAX      H841   C84    .      .
+ VAX      C60    C58    C61    .
+ VAX      C61    C60    C63    .
+ VAX      H61    C61    .      .
+ VAX      C63    C61    C65    .
+ VAX      H63    C63    .      .
+ VAX      C65    C63    O66    .
+ VAX      C64    C65    CL6    .
+ VAX      C62    C64    H62    .
+ VAX      H62    C62    .      .
+ VAX      CL6    C64    .      .
+ VAX      O66    C65    C39    .
+ VAX      C39    O66    C41    .
+ VAX      C37    C39    H37    .
+ VAX      H37    C37    .      .
+ VAX      C41    C39    C40    .
+ VAX      O42    C41    'C1''  .
+ VAX      'C1''  O42    'C2''  .
+ VAX      'H1''  'C1''  .      .
+ VAX      'C2''  'C1''  'O2''  .
+ VAX      'H2''  'C2''  .      .
+ VAX      'C3''  'C2''  'O3''  .
+ VAX      'H3''  'C3''  .      .
+ VAX      'C4''  'C3''  'O4''  .
+ VAX      'H4''  'C4''  .      .
+ VAX      'C5''  'C4''  'O5''  .
+ VAX      'H5''  'C5''  .      .
+ VAX      'C6''  'C5''  'O6''  .
+ VAX      'H6'1' 'C6''  .      .
+ VAX      'H6'2' 'C6''  .      .
+ VAX      'O6''  'C6''  'HO6'' .
+ VAX      'HO6'' 'O6''  .      .
+ VAX      'O5''  'C5''  .      .
+ VAX      'O4''  'C4''  'HO4'' .
+ VAX      'HO4'' 'O4''  .      .
+ VAX      'O3''  'C3''  'HO3'' .
+ VAX      'HO3'' 'O3''  .      .
+ VAX      'O2''  'C2''  C1"    .
+ VAX      C1"    'O2''  C2"    .
+ VAX      H1"    C1"    .      .
+ VAX      C2"    C1"    C3"    .
+ VAX      H2"1   C2"    .      .
+ VAX      H2"2   C2"    .      .
+ VAX      C3"    C2"    N3"    .
+ VAX      C3M    C3"    H3M1   .
+ VAX      H3M3   C3M    .      .
+ VAX      H3M2   C3M    .      .
+ VAX      H3M1   C3M    .      .
+ VAX      C4"    C3"    O4"    .
+ VAX      H4"    C4"    .      .
+ VAX      C5"    C4"    O5"    .
+ VAX      H5"    C5"    .      .
+ VAX      C5M    C5"    H5M1   .
+ VAX      H5M3   C5M    .      .
+ VAX      H5M2   C5M    .      .
+ VAX      H5M1   C5M    .      .
+ VAX      O5"    C5"    .      .
+ VAX      O4"    C4"    HO4"   .
+ VAX      HO4"   O4"    .      .
+ VAX      N3"    C3"    HN31   .
+ VAX      HN33   N3"    .      .
+ VAX      HN32   N3"    .      .
+ VAX      HN31   N3"    .      .
+ VAX      C40    C41    O22    .
+ VAX      C38    C40    C36    .
+ VAX      H38    C38    .      .
+ VAX      C36    C38    .      .
+ VAX      O22    C40    C21    .
+ VAX      C21    O22    C19    .
+ VAX      C20    C21    C18    .
+ VAX      H20    C20    .      .
+ VAX      C18    C20    H18    .
+ VAX      H18    C18    .      .
+ VAX      C19    C21    C17    .
+ VAX      CL2    C19    .      .
+ VAX      C17    C19    C16    .
+ VAX      H17    C17    .      .
+ VAX      C16    C17    C14    .
+ VAX      C14    C16    O15    .
+ VAX      H14    C14    .      .
+ VAX      O15    C14    HO5    .
+ VAX      HO5    O15    .      .
+ VAX      N54    C55    C45    .
+ VAX      HN5    N54    .      .
+ VAX      C45    N54    C44    .
+ VAX      O46    C45    .      .
+ VAX      C44    C45    N43    .
+ VAX      H44    C44    .      .
+ VAX      N43    C44    C34    .
+ VAX      HN3    N43    .      .
+ VAX      C34    N43    C33    .
+ VAX      O35    C34    .      .
+ VAX      C33    C34    N32    .
+ VAX      H33    C33    .      .
+ VAX      N32    C33    C26    .
+ VAX      HN2    N32    .      .
+ VAX      C26    N32    C25    .
+ VAX      O27    C26    .      .
+ VAX      C25    C26    N24    .
+ VAX      H25    C25    .      .
+ VAX      C28    C25    C29    .
+ VAX      H281   C28    .      .
+ VAX      H282   C28    .      .
+ VAX      C29    C28    O30    .
+ VAX      N31    C29    HN11   .
+ VAX      HN12   N31    .      .
+ VAX      HN11   N31    .      .
+ VAX      O30    C29    .      .
+ VAX      N24    C25    C12    .
+ VAX      HN4    N24    .      .
+ VAX      C12    N24    C11    .
+ VAX      O13    C12    .      .
+ VAX      C11    C12    N10    .
+ VAX      H11    C11    .      .
+ VAX      N10    C11    C4     .
+ VAX      HN0    N10    .      .
+ VAX      C4     N10    C3     .
+ VAX      O5     C4     .      .
+ VAX      C3     C4     C6     .
+ VAX      H3     C3     .      .
+ VAX      N2     C3     C1     .
+ VAX      HN21   N2     .      .
+ VAX      HN22   N2     .      .
+ VAX      C1     N2     H1_1   .
+ VAX      H1_3   C1     .      .
+ VAX      H1_2   C1     .      .
+ VAX      H1_1   C1     .      .
+ VAX      C6     C3     C7     .
+ VAX      H6_1   C6     .      .
+ VAX      H6_2   C6     .      .
+ VAX      C7     C6     C8     .
+ VAX      H7     C7     .      .
+ VAX      C9     C7     H9_1   .
+ VAX      H9_3   C9     .      .
+ VAX      H9_2   C9     .      .
+ VAX      H9_1   C9     .      .
+ VAX      C8     C7     H8_1   .
+ VAX      H8_3   C8     .      .
+ VAX      H8_2   C8     .      .
+ VAX      H8_1   C8     .      END
+ VAX      C11    C14    .    ADD
+ VAX      C16    C18    .    ADD
+ VAX      C33    C36    .    ADD
+ VAX      C36    C37    .    ADD
+ VAX      C44    C47    .    ADD
+ VAX      C47    C49    .    ADD
+ VAX      C60    C62    .    ADD
+ VAX      C72    C74    .    ADD
+ VAX      C81    C90    .    ADD
+ VAX      'C1''  'O5''  .    ADD
+ VAX      C1"    O5"    .    ADD
+loop_
+_chem_comp_bond.comp_id
+_chem_comp_bond.atom_id_1
+_chem_comp_bond.atom_id_2
+_chem_comp_bond.type
+_chem_comp_bond.value_dist
+_chem_comp_bond.value_dist_esd
+ VAX      C1     N2        single      1.472    0.020
+ VAX      H1_1   C1        single      1.059    0.020
+ VAX      H1_2   C1        single      1.059    0.020
+ VAX      H1_3   C1        single      1.059    0.020
+ VAX      N2     C3        single      1.475    0.020
+ VAX      HN21   N2        single      1.033    0.020
+ VAX      HN22   N2        single      1.033    0.020
+ VAX      C6     C3        single      1.524    0.020
+ VAX      C3     C4        single      1.500    0.020
+ VAX      H3     C3        single      1.099    0.020
+ VAX      C7     C6        single      1.524    0.020
+ VAX      H6_1   C6        single      1.092    0.020
+ VAX      H6_2   C6        single      1.092    0.020
+ VAX      C8     C7        single      1.524    0.020
+ VAX      C9     C7        single      1.524    0.020
+ VAX      H7     C7        single      1.099    0.020
+ VAX      H8_1   C8        single      1.059    0.020
+ VAX      H8_2   C8        single      1.059    0.020
+ VAX      H8_3   C8        single      1.059    0.020
+ VAX      H9_1   C9        single      1.059    0.020
+ VAX      H9_2   C9        single      1.059    0.020
+ VAX      H9_3   C9        single      1.059    0.020
+ VAX      O5     C4        double      1.220    0.020
+ VAX      C4     N10       single      1.330    0.020
+ VAX      N10    C11       single      1.450    0.020
+ VAX      HN0    N10       single      1.010    0.020
+ VAX      C11    C14       single      1.524    0.020
+ VAX      C11    C12       single      1.500    0.020
+ VAX      H11    C11       single      1.099    0.020
+ VAX      O15    C14       single      1.432    0.020
+ VAX      C14    C16       single      1.480    0.020
+ VAX      H14    C14       single      1.099    0.020
+ VAX      HO5    O15       single      0.967    0.020
+ VAX      C16    C17       double      1.390    0.020
+ VAX      C16    C18       single      1.390    0.020
+ VAX      C17    C19       single      1.390    0.020
+ VAX      H17    C17       single      1.083    0.020
+ VAX      CL2    C19       single      1.795    0.020
+ VAX      C19    C21       double      1.487    0.020
+ VAX      C21    O22       single      1.370    0.020
+ VAX      C20    C21       single      1.390    0.020
+ VAX      O22    C40       single      1.370    0.020
+ VAX      C18    C20       double      1.390    0.020
+ VAX      H20    C20       single      1.083    0.020
+ VAX      H18    C18       single      1.083    0.020
+ VAX      O13    C12       double      1.220    0.020
+ VAX      C12    N24       single      1.330    0.020
+ VAX      N24    C25       single      1.450    0.020
+ VAX      HN4    N24       single      1.010    0.020
+ VAX      C28    C25       single      1.524    0.020
+ VAX      C25    C26       single      1.500    0.020
+ VAX      H25    C25       single      1.099    0.020
+ VAX      C29    C28       single      1.510    0.020
+ VAX      H281   C28       single      1.092    0.020
+ VAX      H282   C28       single      1.092    0.020
+ VAX      O30    C29       double      1.220    0.020
+ VAX      N31    C29       single      1.332    0.020
+ VAX      HN11   N31       single      1.010    0.020
+ VAX      HN12   N31       single      1.010    0.020
+ VAX      O27    C26       double      1.220    0.020
+ VAX      C26    N32       single      1.330    0.020
+ VAX      N32    C33       single      1.450    0.020
+ VAX      HN2    N32       single      1.010    0.020
+ VAX      C33    C36       single      1.480    0.020
+ VAX      C33    C34       single      1.500    0.020
+ VAX      H33    C33       single      1.099    0.020
+ VAX      C36    C38       double      1.390    0.020
+ VAX      C36    C37       single      1.390    0.020
+ VAX      C38    C40       single      1.390    0.020
+ VAX      H38    C38       single      1.083    0.020
+ VAX      C40    C41       double      1.487    0.020
+ VAX      O42    C41       single      1.370    0.020
+ VAX      C41    C39       single      1.487    0.020
+ VAX      'C1''  O42       single      1.426    0.020
+ VAX      C37    C39       double      1.390    0.020
+ VAX      C39    O66       single      1.370    0.020
+ VAX      H37    C37       single      1.083    0.020
+ VAX      O35    C34       double      1.220    0.020
+ VAX      C34    N43       single      1.330    0.020
+ VAX      N43    C44       single      1.450    0.020
+ VAX      HN3    N43       single      1.010    0.020
+ VAX      C44    C47       single      1.480    0.020
+ VAX      C44    C45       single      1.500    0.020
+ VAX      H44    C44       single      1.099    0.020
+ VAX      C47    C48       double      1.390    0.020
+ VAX      C47    C49       single      1.390    0.020
+ VAX      C48    C50       single      1.390    0.020
+ VAX      H48    C48       single      1.083    0.020
+ VAX      C52    C50       double      1.487    0.020
+ VAX      C50    C73       single      1.487    0.020
+ VAX      O53    C52       single      1.362    0.020
+ VAX      C51    C52       single      1.390    0.020
+ VAX      HO3    O53       single      0.967    0.020
+ VAX      C49    C51       double      1.390    0.020
+ VAX      H51    C51       single      1.083    0.020
+ VAX      H49    C49       single      1.083    0.020
+ VAX      O46    C45       double      1.220    0.020
+ VAX      C45    N54       single      1.330    0.020
+ VAX      N54    C55       single      1.450    0.020
+ VAX      HN5    N54       single      1.010    0.020
+ VAX      C58    C55       single      1.524    0.020
+ VAX      C55    C56       single      1.500    0.020
+ VAX      H55    C55       single      1.099    0.020
+ VAX      O59    C58       single      1.426    0.020
+ VAX      C60    C58       single      1.480    0.020
+ VAX      H58    C58       single      1.099    0.020
+ VAX      C81    O59       single      1.426    0.020
+ VAX      C61    C60       double      1.390    0.020
+ VAX      C60    C62       single      1.390    0.020
+ VAX      C63    C61       single      1.390    0.020
+ VAX      H61    C61       single      1.083    0.020
+ VAX      C65    C63       double      1.390    0.020
+ VAX      H63    C63       single      1.083    0.020
+ VAX      O66    C65       single      1.370    0.020
+ VAX      C64    C65       single      1.487    0.020
+ VAX      CL6    C64       single      1.795    0.020
+ VAX      C62    C64       double      1.390    0.020
+ VAX      H62    C62       single      1.083    0.020
+ VAX      O57    C56       double      1.220    0.020
+ VAX      C56    N68       single      1.330    0.020
+ VAX      N68    C69       single      1.450    0.020
+ VAX      HN8    N68       single      1.010    0.020
+ VAX      C72    C69       single      1.480    0.020
+ VAX      C69    C70       single      1.500    0.020
+ VAX      H69    C69       single      1.099    0.020
+ VAX      C73    C72       double      1.487    0.020
+ VAX      C72    C74       single      1.390    0.020
+ VAX      C75    C73       single      1.487    0.020
+ VAX      O79    C75       single      1.362    0.020
+ VAX      C76    C75       double      1.390    0.020
+ VAX      HO7    O79       single      0.967    0.020
+ VAX      C77    C76       single      1.390    0.020
+ VAX      H76    C76       single      1.083    0.020
+ VAX      O78    C77       single      1.362    0.020
+ VAX      C74    C77       double      1.390    0.020
+ VAX      HO8    O78       single      0.967    0.020
+ VAX      H74    C74       single      1.083    0.020
+ VAX      O71    C70       deloc       1.250    0.020
+ VAX      C70    O80       deloc       1.250    0.020
+ VAX      O82    C81       single      1.426    0.020
+ VAX      C81    C90       single      1.524    0.020
+ VAX      H81    C81       single      1.099    0.020
+ VAX      C83    O82       single      1.426    0.020
+ VAX      C84    C83       single      1.524    0.020
+ VAX      C85    C83       single      1.524    0.020
+ VAX      H83    C83       single      1.099    0.020
+ VAX      H841   C84       single      1.059    0.020
+ VAX      H842   C84       single      1.059    0.020
+ VAX      H843   C84       single      1.059    0.020
+ VAX      O86    C85       single      1.432    0.020
+ VAX      C87    C85       single      1.524    0.020
+ VAX      H85    C85       single      1.099    0.020
+ VAX      HO6    O86       single      0.967    0.020
+ VAX      N88    C87       single      1.488    0.020
+ VAX      C89    C87       single      1.524    0.020
+ VAX      C90    C87       single      1.524    0.020
+ VAX      HN81   N88       single      1.033    0.020
+ VAX      HN82   N88       single      1.033    0.020
+ VAX      HN83   N88       single      1.033    0.020
+ VAX      H891   C89       single      1.059    0.020
+ VAX      H892   C89       single      1.059    0.020
+ VAX      H893   C89       single      1.059    0.020
+ VAX      H901   C90       single      1.092    0.020
+ VAX      H902   C90       single      1.092    0.020
+ VAX      'C2''  'C1''     single      1.524    0.020
+ VAX      'C1''  'O5''     single      1.426    0.020
+ VAX      'H1''  'C1''     single      1.099    0.020
+ VAX      'O2''  'C2''     single      1.426    0.020
+ VAX      'C3''  'C2''     single      1.524    0.020
+ VAX      'H2''  'C2''     single      1.099    0.020
+ VAX      C1"    'O2''     single      1.426    0.020
+ VAX      'O3''  'C3''     single      1.432    0.020
+ VAX      'C4''  'C3''     single      1.524    0.020
+ VAX      'H3''  'C3''     single      1.099    0.020
+ VAX      'HO3'' 'O3''     single      0.967    0.020
+ VAX      'O4''  'C4''     single      1.432    0.020
+ VAX      'C5''  'C4''     single      1.524    0.020
+ VAX      'H4''  'C4''     single      1.099    0.020
+ VAX      'HO4'' 'O4''     single      0.967    0.020
+ VAX      'O5''  'C5''     single      1.426    0.020
+ VAX      'C6''  'C5''     single      1.524    0.020
+ VAX      'H5''  'C5''     single      1.099    0.020
+ VAX      'O6''  'C6''     single      1.432    0.020
+ VAX      'H6'1' 'C6''     single      1.092    0.020
+ VAX      'H6'2' 'C6''     single      1.092    0.020
+ VAX      'HO6'' 'O6''     single      0.967    0.020
+ VAX      C2"    C1"       single      1.524    0.020
+ VAX      C1"    O5"       single      1.426    0.020
+ VAX      H1"    C1"       single      1.099    0.020
+ VAX      C3"    C2"       single      1.524    0.020
+ VAX      H2"1   C2"       single      1.092    0.020
+ VAX      H2"2   C2"       single      1.092    0.020
+ VAX      N3"    C3"       single      1.488    0.020
+ VAX      C3M    C3"       single      1.524    0.020
+ VAX      C4"    C3"       single      1.524    0.020
+ VAX      HN31   N3"       single      1.033    0.020
+ VAX      HN32   N3"       single      1.033    0.020
+ VAX      HN33   N3"       single      1.033    0.020
+ VAX      H3M1   C3M       single      1.059    0.020
+ VAX      H3M2   C3M       single      1.059    0.020
+ VAX      H3M3   C3M       single      1.059    0.020
+ VAX      O4"    C4"       single      1.432    0.020
+ VAX      C5"    C4"       single      1.524    0.020
+ VAX      H4"    C4"       single      1.099    0.020
+ VAX      HO4"   O4"       single      0.967    0.020
+ VAX      O5"    C5"       single      1.426    0.020
+ VAX      C5M    C5"       single      1.524    0.020
+ VAX      H5"    C5"       single      1.099    0.020
+ VAX      H5M1   C5M       single      1.059    0.020
+ VAX      H5M2   C5M       single      1.059    0.020
+ VAX      H5M3   C5M       single      1.059    0.020
+loop_
+_chem_comp_angle.comp_id
+_chem_comp_angle.atom_id_1
+_chem_comp_angle.atom_id_2
+_chem_comp_angle.atom_id_3
+_chem_comp_angle.value_angle
+_chem_comp_angle.value_angle_esd
+ VAX      O80    C70    O71     123.000    3.000
+ VAX      O80    C70    C69     118.500    3.000
+ VAX      O71    C70    C69     118.500    3.000
+ VAX      C70    C69    H69     108.810    3.000
+ VAX      C70    C69    C72     109.500    3.000
+ VAX      C70    C69    N68     111.600    3.000
+ VAX      H69    C69    C72     109.470    3.000
+ VAX      H69    C69    N68     108.550    3.000
+ VAX      C72    C69    N68     109.470    3.000
+ VAX      C69    C72    C73     120.000    3.000
+ VAX      C69    C72    C74     120.000    3.000
+ VAX      C73    C72    C74     120.000    3.000
+ VAX      C72    C73    C75     120.000    3.000
+ VAX      C72    C73    C50     120.000    3.000
+ VAX      C75    C73    C50     120.000    3.000
+ VAX      C73    C75    C76     120.000    3.000
+ VAX      C73    C75    O79     120.000    3.000
+ VAX      C76    C75    O79     120.000    3.000
+ VAX      C75    C76    H76     120.000    3.000
+ VAX      C75    C76    C77     120.000    3.000
+ VAX      H76    C76    C77     120.000    3.000
+ VAX      C76    C77    C74     120.000    3.000
+ VAX      C76    C77    O78     120.000    3.000
+ VAX      C74    C77    O78     120.000    3.000
+ VAX      C77    C74    H74     120.000    3.000
+ VAX      C77    C74    C72     120.000    3.000
+ VAX      H74    C74    C72     120.000    3.000
+ VAX      C77    O78    HO8     109.470    3.000
+ VAX      C75    O79    HO7     109.470    3.000
+ VAX      C73    C50    C52     120.000    3.000
+ VAX      C73    C50    C48     120.000    3.000
+ VAX      C52    C50    C48     120.000    3.000
+ VAX      C50    C52    C51     120.000    3.000
+ VAX      C50    C52    O53     120.000    3.000
+ VAX      C51    C52    O53     120.000    3.000
+ VAX      C52    C51    H51     120.000    3.000
+ VAX      C52    C51    C49     120.000    3.000
+ VAX      H51    C51    C49     120.000    3.000
+ VAX      C51    C49    H49     120.000    3.000
+ VAX      C51    C49    C47     120.000    3.000
+ VAX      H49    C49    C47     120.000    3.000
+ VAX      C52    O53    HO3     109.470    3.000
+ VAX      C50    C48    H48     120.000    3.000
+ VAX      C50    C48    C47     120.000    3.000
+ VAX      H48    C48    C47     120.000    3.000
+ VAX      C48    C47    C44     120.000    3.000
+ VAX      C48    C47    C49     120.000    3.000
+ VAX      C44    C47    C49     120.000    3.000
+ VAX      C69    N68    HN8     118.500    3.000
+ VAX      C69    N68    C56     121.500    3.000
+ VAX      HN8    N68    C56     120.000    3.000
+ VAX      N68    C56    O57     123.000    3.000
+ VAX      N68    C56    C55     116.500    3.000
+ VAX      O57    C56    C55     120.500    3.000
+ VAX      C56    C55    H55     108.810    3.000
+ VAX      C56    C55    C58     109.470    3.000
+ VAX      C56    C55    N54     111.600    3.000
+ VAX      H55    C55    C58     108.340    3.000
+ VAX      H55    C55    N54     108.550    3.000
+ VAX      C58    C55    N54     110.000    3.000
+ VAX      C55    C58    H58     108.340    3.000
+ VAX      C55    C58    O59     109.470    3.000
+ VAX      C55    C58    C60     109.470    3.000
+ VAX      H58    C58    O59     109.470    3.000
+ VAX      H58    C58    C60     109.470    3.000
+ VAX      O59    C58    C60     109.470    3.000
+ VAX      C58    O59    C81     111.800    3.000
+ VAX      O59    C81    H81     109.470    3.000
+ VAX      O59    C81    O82     109.470    3.000
+ VAX      O59    C81    C90     109.470    3.000
+ VAX      H81    C81    O82     109.470    3.000
+ VAX      H81    C81    C90     108.340    3.000
+ VAX      O82    C81    C90     109.470    3.000
+ VAX      C81    O82    C83     111.800    3.000
+ VAX      O82    C83    H83     109.470    3.000
+ VAX      O82    C83    C85     109.470    3.000
+ VAX      O82    C83    C84     109.470    3.000
+ VAX      H83    C83    C85     108.340    3.000
+ VAX      H83    C83    C84     108.340    3.000
+ VAX      C85    C83    C84     111.000    3.000
+ VAX      C83    C85    H85     108.340    3.000
+ VAX      C83    C85    C87     111.000    3.000
+ VAX      C83    C85    O86     109.470    3.000
+ VAX      H85    C85    C87     108.340    3.000
+ VAX      H85    C85    O86     109.470    3.000
+ VAX      C87    C85    O86     109.470    3.000
+ VAX      C85    C87    C90     111.000    3.000
+ VAX      C85    C87    C89     111.000    3.000
+ VAX      C85    C87    N88     110.000    3.000
+ VAX      C90    C87    C89     111.000    3.000
+ VAX      C90    C87    N88     110.000    3.000
+ VAX      C89    C87    N88     110.000    3.000
+ VAX      C87    C90    H902    109.470    3.000
+ VAX      C87    C90    H901    109.470    3.000
+ VAX      C87    C90    C81     111.000    3.000
+ VAX      H902   C90    H901    107.900    3.000
+ VAX      H902   C90    C81     109.470    3.000
+ VAX      H901   C90    C81     109.470    3.000
+ VAX      C87    C89    H893    109.470    3.000
+ VAX      C87    C89    H892    109.470    3.000
+ VAX      C87    C89    H891    109.470    3.000
+ VAX      H893   C89    H892    109.470    3.000
+ VAX      H893   C89    H891    109.470    3.000
+ VAX      H892   C89    H891    109.470    3.000
+ VAX      C87    N88    HN83    109.470    3.000
+ VAX      C87    N88    HN82    109.470    3.000
+ VAX      C87    N88    HN81    109.470    3.000
+ VAX      HN83   N88    HN82    109.470    3.000
+ VAX      HN83   N88    HN81    109.470    3.000
+ VAX      HN82   N88    HN81    109.470    3.000
+ VAX      C85    O86    HO6     109.470    3.000
+ VAX      C83    C84    H843    109.470    3.000
+ VAX      C83    C84    H842    109.470    3.000
+ VAX      C83    C84    H841    109.470    3.000
+ VAX      H843   C84    H842    109.470    3.000
+ VAX      H843   C84    H841    109.470    3.000
+ VAX      H842   C84    H841    109.470    3.000
+ VAX      C58    C60    C61     120.000    3.000
+ VAX      C58    C60    C62     120.000    3.000
+ VAX      C61    C60    C62     120.000    3.000
+ VAX      C60    C61    H61     120.000    3.000
+ VAX      C60    C61    C63     120.000    3.000
+ VAX      H61    C61    C63     120.000    3.000
+ VAX      C61    C63    H63     120.000    3.000
+ VAX      C61    C63    C65     120.000    3.000
+ VAX      H63    C63    C65     120.000    3.000
+ VAX      C63    C65    C64     120.000    3.000
+ VAX      C63    C65    O66     120.000    3.000
+ VAX      C64    C65    O66     120.000    3.000
+ VAX      C65    C64    C62     120.000    3.000
+ VAX      C65    C64    CL6     120.000    3.000
+ VAX      C62    C64    CL6     120.000    3.000
+ VAX      C64    C62    H62     120.000    3.000
+ VAX      C64    C62    C60     120.000    3.000
+ VAX      H62    C62    C60     120.000    3.000
+ VAX      C65    O66    C39     120.000    3.000
+ VAX      O66    C39    C37     120.000    3.000
+ VAX      O66    C39    C41     120.000    3.000
+ VAX      C37    C39    C41     120.000    3.000
+ VAX      C39    C37    H37     120.000    3.000
+ VAX      C39    C37    C36     120.000    3.000
+ VAX      H37    C37    C36     120.000    3.000
+ VAX      C39    C41    O42     120.000    3.000
+ VAX      C39    C41    C40     120.000    3.000
+ VAX      O42    C41    C40     120.000    3.000
+ VAX      C41    O42    'C1''   120.000    3.000
+ VAX      O42    'C1''  'H1''   109.470    3.000
+ VAX      O42    'C1''  'C2''   109.470    3.000
+ VAX      O42    'C1''  'O5''   109.470    3.000
+ VAX      'H1''  'C1''  'C2''   108.340    3.000
+ VAX      'H1''  'C1''  'O5''   109.470    3.000
+ VAX      'C2''  'C1''  'O5''   109.470    3.000
+ VAX      'C1''  'C2''  'H2''   108.340    3.000
+ VAX      'C1''  'C2''  'C3''   111.000    3.000
+ VAX      'C1''  'C2''  'O2''   109.470    3.000
+ VAX      'H2''  'C2''  'C3''   108.340    3.000
+ VAX      'H2''  'C2''  'O2''   109.470    3.000
+ VAX      'C3''  'C2''  'O2''   109.470    3.000
+ VAX      'C2''  'C3''  'H3''   108.340    3.000
+ VAX      'C2''  'C3''  'C4''   111.000    3.000
+ VAX      'C2''  'C3''  'O3''   109.470    3.000
+ VAX      'H3''  'C3''  'C4''   108.340    3.000
+ VAX      'H3''  'C3''  'O3''   109.470    3.000
+ VAX      'C4''  'C3''  'O3''   109.470    3.000
+ VAX      'C3''  'C4''  'H4''   108.340    3.000
+ VAX      'C3''  'C4''  'C5''   111.000    3.000
+ VAX      'C3''  'C4''  'O4''   109.470    3.000
+ VAX      'H4''  'C4''  'C5''   108.340    3.000
+ VAX      'H4''  'C4''  'O4''   109.470    3.000
+ VAX      'C5''  'C4''  'O4''   109.470    3.000
+ VAX      'C4''  'C5''  'H5''   108.340    3.000
+ VAX      'C4''  'C5''  'C6''   111.000    3.000
+ VAX      'C4''  'C5''  'O5''   109.470    3.000
+ VAX      'H5''  'C5''  'C6''   108.340    3.000
+ VAX      'H5''  'C5''  'O5''   109.470    3.000
+ VAX      'C6''  'C5''  'O5''   109.470    3.000
+ VAX      'C5''  'C6''  'H6'1'  109.470    3.000
+ VAX      'C5''  'C6''  'H6'2'  109.470    3.000
+ VAX      'C5''  'C6''  'O6''   109.470    3.000
+ VAX      'H6'1' 'C6''  'H6'2'  107.900    3.000
+ VAX      'H6'1' 'C6''  'O6''   109.470    3.000
+ VAX      'H6'2' 'C6''  'O6''   109.470    3.000
+ VAX      'C6''  'O6''  'HO6''  109.470    3.000
+ VAX      'C5''  'O5''  'C1''   111.800    3.000
+ VAX      'C4''  'O4''  'HO4''  109.470    3.000
+ VAX      'C3''  'O3''  'HO3''  109.470    3.000
+ VAX      'C2''  'O2''  C1"     111.800    3.000
+ VAX      'O2''  C1"    H1"     109.470    3.000
+ VAX      'O2''  C1"    C2"     109.470    3.000
+ VAX      'O2''  C1"    O5"     109.470    3.000
+ VAX      H1"    C1"    C2"     108.340    3.000
+ VAX      H1"    C1"    O5"     109.470    3.000
+ VAX      C2"    C1"    O5"     109.470    3.000
+ VAX      C1"    C2"    H2"1    109.470    3.000
+ VAX      C1"    C2"    H2"2    109.470    3.000
+ VAX      C1"    C2"    C3"     111.000    3.000
+ VAX      H2"1   C2"    H2"2    107.900    3.000
+ VAX      H2"1   C2"    C3"     109.470    3.000
+ VAX      H2"2   C2"    C3"     109.470    3.000
+ VAX      C2"    C3"    C4"     111.000    3.000
+ VAX      C2"    C3"    C3M     111.000    3.000
+ VAX      C2"    C3"    N3"     110.000    3.000
+ VAX      C4"    C3"    C3M     111.000    3.000
+ VAX      C4"    C3"    N3"     110.000    3.000
+ VAX      C3M    C3"    N3"     110.000    3.000
+ VAX      C3"    C4"    H4"     108.340    3.000
+ VAX      C3"    C4"    C5"     111.000    3.000
+ VAX      C3"    C4"    O4"     109.470    3.000
+ VAX      H4"    C4"    C5"     108.340    3.000
+ VAX      H4"    C4"    O4"     109.470    3.000
+ VAX      C5"    C4"    O4"     109.470    3.000
+ VAX      C4"    C5"    H5"     108.340    3.000
+ VAX      C4"    C5"    C5M     111.000    3.000
+ VAX      C4"    C5"    O5"     109.470    3.000
+ VAX      H5"    C5"    C5M     108.340    3.000
+ VAX      H5"    C5"    O5"     109.470    3.000
+ VAX      C5M    C5"    O5"     109.470    3.000
+ VAX      C5"    C5M    H5M3    109.470    3.000
+ VAX      C5"    C5M    H5M2    109.470    3.000
+ VAX      C5"    C5M    H5M1    109.470    3.000
+ VAX      H5M3   C5M    H5M2    109.470    3.000
+ VAX      H5M3   C5M    H5M1    109.470    3.000
+ VAX      H5M2   C5M    H5M1    109.470    3.000
+ VAX      C5"    O5"    C1"     111.800    3.000
+ VAX      C4"    O4"    HO4"    109.470    3.000
+ VAX      C3"    C3M    H3M3    109.470    3.000
+ VAX      C3"    C3M    H3M2    109.470    3.000
+ VAX      C3"    C3M    H3M1    109.470    3.000
+ VAX      H3M3   C3M    H3M2    109.470    3.000
+ VAX      H3M3   C3M    H3M1    109.470    3.000
+ VAX      H3M2   C3M    H3M1    109.470    3.000
+ VAX      C3"    N3"    HN33    109.470    3.000
+ VAX      C3"    N3"    HN32    109.470    3.000
+ VAX      C3"    N3"    HN31    109.470    3.000
+ VAX      HN33   N3"    HN32    109.470    3.000
+ VAX      HN33   N3"    HN31    109.470    3.000
+ VAX      HN32   N3"    HN31    109.470    3.000
+ VAX      C41    C40    C38     120.000    3.000
+ VAX      C41    C40    O22     120.000    3.000
+ VAX      C38    C40    O22     120.000    3.000
+ VAX      C40    C38    H38     120.000    3.000
+ VAX      C40    C38    C36     120.000    3.000
+ VAX      H38    C38    C36     120.000    3.000
+ VAX      C38    C36    C33     120.000    3.000
+ VAX      C38    C36    C37     120.000    3.000
+ VAX      C33    C36    C37     120.000    3.000
+ VAX      C40    O22    C21     120.000    3.000
+ VAX      O22    C21    C20     120.000    3.000
+ VAX      O22    C21    C19     120.000    3.000
+ VAX      C20    C21    C19     120.000    3.000
+ VAX      C21    C20    H20     120.000    3.000
+ VAX      C21    C20    C18     120.000    3.000
+ VAX      H20    C20    C18     120.000    3.000
+ VAX      C20    C18    H18     120.000    3.000
+ VAX      C20    C18    C16     120.000    3.000
+ VAX      H18    C18    C16     120.000    3.000
+ VAX      C21    C19    CL2     120.000    3.000
+ VAX      C21    C19    C17     120.000    3.000
+ VAX      CL2    C19    C17     120.000    3.000
+ VAX      C19    C17    H17     120.000    3.000
+ VAX      C19    C17    C16     120.000    3.000
+ VAX      H17    C17    C16     120.000    3.000
+ VAX      C17    C16    C14     120.000    3.000
+ VAX      C17    C16    C18     120.000    3.000
+ VAX      C14    C16    C18     120.000    3.000
+ VAX      C16    C14    H14     109.470    3.000
+ VAX      C16    C14    O15     109.470    3.000
+ VAX      C16    C14    C11     109.470    3.000
+ VAX      H14    C14    O15     109.470    3.000
+ VAX      H14    C14    C11     108.340    3.000
+ VAX      O15    C14    C11     109.470    3.000
+ VAX      C14    O15    HO5     109.470    3.000
+ VAX      C55    N54    HN5     118.500    3.000
+ VAX      C55    N54    C45     121.500    3.000
+ VAX      HN5    N54    C45     120.000    3.000
+ VAX      N54    C45    O46     123.000    3.000
+ VAX      N54    C45    C44     116.500    3.000
+ VAX      O46    C45    C44     120.500    3.000
+ VAX      C45    C44    H44     108.810    3.000
+ VAX      C45    C44    N43     111.600    3.000
+ VAX      C45    C44    C47     109.500    3.000
+ VAX      H44    C44    N43     108.550    3.000
+ VAX      H44    C44    C47     109.470    3.000
+ VAX      N43    C44    C47     109.470    3.000
+ VAX      C44    N43    HN3     118.500    3.000
+ VAX      C44    N43    C34     121.500    3.000
+ VAX      HN3    N43    C34     120.000    3.000
+ VAX      N43    C34    O35     123.000    3.000
+ VAX      N43    C34    C33     116.500    3.000
+ VAX      O35    C34    C33     120.500    3.000
+ VAX      C34    C33    H33     108.810    3.000
+ VAX      C34    C33    N32     111.600    3.000
+ VAX      C34    C33    C36     109.500    3.000
+ VAX      H33    C33    N32     108.550    3.000
+ VAX      H33    C33    C36     109.470    3.000
+ VAX      N32    C33    C36     109.470    3.000
+ VAX      C33    N32    HN2     118.500    3.000
+ VAX      C33    N32    C26     121.500    3.000
+ VAX      HN2    N32    C26     120.000    3.000
+ VAX      N32    C26    O27     123.000    3.000
+ VAX      N32    C26    C25     116.500    3.000
+ VAX      O27    C26    C25     120.500    3.000
+ VAX      C26    C25    H25     108.810    3.000
+ VAX      C26    C25    C28     109.470    3.000
+ VAX      C26    C25    N24     111.600    3.000
+ VAX      H25    C25    C28     108.340    3.000
+ VAX      H25    C25    N24     108.550    3.000
+ VAX      C28    C25    N24     110.000    3.000
+ VAX      C25    C28    H281    109.470    3.000
+ VAX      C25    C28    H282    109.470    3.000
+ VAX      C25    C28    C29     109.470    3.000
+ VAX      H281   C28    H282    107.900    3.000
+ VAX      H281   C28    C29     109.470    3.000
+ VAX      H282   C28    C29     109.470    3.000
+ VAX      C28    C29    N31     116.500    3.000
+ VAX      C28    C29    O30     120.500    3.000
+ VAX      N31    C29    O30     123.000    3.000
+ VAX      C29    N31    HN12    120.000    3.000
+ VAX      C29    N31    HN11    120.000    3.000
+ VAX      HN12   N31    HN11    120.000    3.000
+ VAX      C25    N24    HN4     118.500    3.000
+ VAX      C25    N24    C12     121.500    3.000
+ VAX      HN4    N24    C12     120.000    3.000
+ VAX      N24    C12    O13     123.000    3.000
+ VAX      N24    C12    C11     116.500    3.000
+ VAX      O13    C12    C11     120.500    3.000
+ VAX      C12    C11    H11     108.810    3.000
+ VAX      C12    C11    N10     111.600    3.000
+ VAX      C12    C11    C14     109.470    3.000
+ VAX      H11    C11    N10     108.550    3.000
+ VAX      H11    C11    C14     108.340    3.000
+ VAX      N10    C11    C14     110.000    3.000
+ VAX      C11    N10    HN0     118.500    3.000
+ VAX      C11    N10    C4      121.500    3.000
+ VAX      HN0    N10    C4      120.000    3.000
+ VAX      N10    C4     O5      123.000    3.000
+ VAX      N10    C4     C3      116.500    3.000
+ VAX      O5     C4     C3      120.500    3.000
+ VAX      C4     C3     H3      108.810    3.000
+ VAX      C4     C3     N2      109.500    3.000
+ VAX      C4     C3     C6      109.470    3.000
+ VAX      H3     C3     N2      109.500    3.000
+ VAX      H3     C3     C6      108.340    3.000
+ VAX      N2     C3     C6      109.500    3.000
+ VAX      C3     N2     HN21    109.500    3.000
+ VAX      C3     N2     HN22    109.500    3.000
+ VAX      C3     N2     C1      109.500    3.000
+ VAX      HN21   N2     HN22    109.500    3.000
+ VAX      HN21   N2     C1      109.500    3.000
+ VAX      HN22   N2     C1      109.500    3.000
+ VAX      N2     C1     H1_3    109.500    3.000
+ VAX      N2     C1     H1_2    109.500    3.000
+ VAX      N2     C1     H1_1    109.500    3.000
+ VAX      H1_3   C1     H1_2    109.470    3.000
+ VAX      H1_3   C1     H1_1    109.470    3.000
+ VAX      H1_2   C1     H1_1    109.470    3.000
+ VAX      C3     C6     H6_1    109.470    3.000
+ VAX      C3     C6     H6_2    109.470    3.000
+ VAX      C3     C6     C7      111.000    3.000
+ VAX      H6_1   C6     H6_2    107.900    3.000
+ VAX      H6_1   C6     C7      109.470    3.000
+ VAX      H6_2   C6     C7      109.470    3.000
+ VAX      C6     C7     H7      108.340    3.000
+ VAX      C6     C7     C9      111.000    3.000
+ VAX      C6     C7     C8      111.000    3.000
+ VAX      H7     C7     C9      108.340    3.000
+ VAX      H7     C7     C8      108.340    3.000
+ VAX      C9     C7     C8      111.000    3.000
+ VAX      C7     C9     H9_3    109.470    3.000
+ VAX      C7     C9     H9_2    109.470    3.000
+ VAX      C7     C9     H9_1    109.470    3.000
+ VAX      H9_3   C9     H9_2    109.470    3.000
+ VAX      H9_3   C9     H9_1    109.470    3.000
+ VAX      H9_2   C9     H9_1    109.470    3.000
+ VAX      C7     C8     H8_3    109.470    3.000
+ VAX      C7     C8     H8_2    109.470    3.000
+ VAX      C7     C8     H8_1    109.470    3.000
+ VAX      H8_3   C8     H8_2    109.470    3.000
+ VAX      H8_3   C8     H8_1    109.470    3.000
+ VAX      H8_2   C8     H8_1    109.470    3.000
+loop_
+_chem_comp_tor.comp_id
+_chem_comp_tor.id
+_chem_comp_tor.atom_id_1
+_chem_comp_tor.atom_id_2
+_chem_comp_tor.atom_id_3
+_chem_comp_tor.atom_id_4
+_chem_comp_tor.value_angle
+_chem_comp_tor.value_angle_esd
+_chem_comp_tor.period
+ VAX      var_1    O80    C70    C69    N68      -45.103   20.000   3
+ VAX      var_2    C70    C69    C72    C73     -177.980   20.000   1
+ VAX      CONST_1  C69    C72    C74    C77      180.000    0.000   0
+ VAX      CONST_2  C69    C72    C73    C50        0.000    0.000   0
+ VAX      CONST_3  C72    C73    C75    O79      180.000    0.000   0
+ VAX      CONST_4  C73    C75    C76    C77        0.000    0.000   0
+ VAX      CONST_5  C75    C76    C77    O78      180.000    0.000   0
+ VAX      CONST_6  C76    C77    C74    C72        0.000    0.000   0
+ VAX      var_3    C76    C77    O78    HO8      179.937   20.000   1
+ VAX      var_4    C73    C75    O79    HO7      179.774   20.000   1
+ VAX      CONST_7  C72    C73    C50    C48        0.000    0.000   0
+ VAX      CONST_8  C73    C50    C52    O53        0.000    0.000   0
+ VAX      CONST_9  C50    C52    C51    C49        0.000    0.000   0
+ VAX      CONST_10 C52    C51    C49    C47        0.000    0.000   0
+ VAX      var_5    C50    C52    O53    HO3       -0.048   20.000   1
+ VAX      CONST_11 C73    C50    C48    C47      180.000    0.000   0
+ VAX      CONST_12 C50    C48    C47    C44      180.000    0.000   0
+ VAX      CONST_13 C48    C47    C49    C51        0.000    0.000   0
+ VAX      var_6    C70    C69    N68    C56      -84.093   20.000   3
+ VAX      CONST_14 C69    N68    C56    C55      180.000    0.000   0
+ VAX      var_7    N68    C56    C55    N54      129.992   20.000   3
+ VAX      var_8    C56    C55    C58    C60      163.056   20.000   3
+ VAX      var_9    C55    C58    O59    C81      168.626   20.000   1
+ VAX      var_10   C58    O59    C81    O82      -50.583   20.000   1
+ VAX      var_11   O59    C81    C90    C87       60.000   20.000   3
+ VAX      var_12   O59    C81    O82    C83      -60.000   20.000   1
+ VAX      var_13   C81    O82    C83    C84      180.000   20.000   1
+ VAX      var_14   O82    C83    C85    O86      180.000   20.000   3
+ VAX      var_15   C83    C85    C87    N88      180.000   20.000   1
+ VAX      var_16   C85    C87    C90    C81       60.000   20.000   1
+ VAX      var_17   C85    C87    C89    H891     -67.095   20.000   1
+ VAX      var_18   C85    C87    N88    HN81    -179.699   20.000   1
+ VAX      var_19   C83    C85    O86    HO6      144.316   20.000   1
+ VAX      var_20   O82    C83    C84    H841     -60.174   20.000   3
+ VAX      var_21   C55    C58    C60    C61      109.130   20.000   1
+ VAX      CONST_15 C58    C60    C62    C64      180.000    0.000   0
+ VAX      CONST_16 C58    C60    C61    C63      180.000    0.000   0
+ VAX      CONST_17 C60    C61    C63    C65        0.000    0.000   0
+ VAX      CONST_18 C61    C63    C65    O66      180.000    0.000   0
+ VAX      CONST_19 C63    C65    C64    CL6      180.000    0.000   0
+ VAX      CONST_20 C65    C64    C62    C60        0.000    0.000   0
+ VAX      var_22   C63    C65    O66    C39     -109.745   20.000   1
+ VAX      var_23   C65    O66    C39    C41     -174.971   20.000   1
+ VAX      CONST_21 O66    C39    C37    C36      180.000    0.000   0
+ VAX      CONST_22 O66    C39    C41    C40      180.000    0.000   0
+ VAX      var_24   C39    C41    O42    'C1''    113.211   20.000   1
+ VAX      var_25   C41    O42    'C1''  'C2''    170.854   20.000   1
+ VAX      var_26   O42    'C1''  'O5''  'C5''    180.000   20.000   1
+ VAX      var_27   O42    'C1''  'C2''  'O2''    -60.000   20.000   3
+ VAX      var_28   'C1''  'C2''  'C3''  'O3''    180.000   20.000   3
+ VAX      var_29   'C2''  'C3''  'C4''  'O4''    180.000   20.000   3
+ VAX      var_30   'C3''  'C4''  'C5''  'O5''    -60.000   20.000   3
+ VAX      var_31   'C4''  'C5''  'C6''  'O6''     56.771   20.000   3
+ VAX      var_32   'C5''  'C6''  'O6''  'HO6''   179.405   20.000   1
+ VAX      var_33   'C4''  'C5''  'O5''  'C1''     60.000   20.000   1
+ VAX      var_34   'C3''  'C4''  'O4''  'HO4''    92.389   20.000   1
+ VAX      var_35   'C2''  'C3''  'O3''  'HO3''  -144.901   20.000   1
+ VAX      var_36   'C1''  'C2''  'O2''  C1"      126.912   20.000   1
+ VAX      var_37   'C2''  'O2''  C1"    C2"      136.210   20.000   1
+ VAX      var_38   'O2''  C1"    O5"    C5"      -60.000   20.000   1
+ VAX      var_39   'O2''  C1"    C2"    C3"       60.000   20.000   3
+ VAX      var_40   C1"    C2"    C3"    N3"      180.000   20.000   1
+ VAX      var_41   C2"    C3"    C4"    O4"      180.000   20.000   1
+ VAX      var_42   C3"    C4"    C5"    O5"       60.000   20.000   3
+ VAX      var_43   C4"    C5"    C5M    H5M1      63.972   20.000   3
+ VAX      var_44   C4"    C5"    O5"    C1"      -60.000   20.000   1
+ VAX      var_45   C3"    C4"    O4"    HO4"     -93.886   20.000   1
+ VAX      var_46   C2"    C3"    C3M    H3M1     -54.844   20.000   1
+ VAX      var_47   C2"    C3"    N3"    HN31      60.867   20.000   1
+ VAX      CONST_23 C39    C41    C40    O22      180.000    0.000   0
+ VAX      CONST_24 C41    C40    C38    C36        0.000    0.000   0
+ VAX      CONST_25 C40    C38    C36    C33      180.000    0.000   0
+ VAX      CONST_26 C38    C36    C37    C39        0.000    0.000   0
+ VAX      var_48   C41    C40    O22    C21      155.294   20.000   1
+ VAX      var_49   C40    O22    C21    C19      109.409   20.000   1
+ VAX      CONST_27 O22    C21    C20    C18      180.000    0.000   0
+ VAX      CONST_28 C21    C20    C18    C16        0.000    0.000   0
+ VAX      CONST_29 O22    C21    C19    C17      180.000    0.000   0
+ VAX      CONST_30 C21    C19    C17    C16        0.000    0.000   0
+ VAX      CONST_31 C19    C17    C16    C14      180.000    0.000   0
+ VAX      CONST_32 C17    C16    C18    C20        0.000    0.000   0
+ VAX      var_50   C17    C16    C14    O15      121.057   20.000   1
+ VAX      var_51   C16    C14    O15    HO5       53.333   20.000   1
+ VAX      var_52   C56    C55    N54    C45      -99.465   20.000   3
+ VAX      CONST_33 C55    N54    C45    C44        0.000    0.000   0
+ VAX      var_53   N54    C45    C44    N43     -141.068   20.000   3
+ VAX      var_54   C45    C44    C47    C48     -109.337   20.000   1
+ VAX      var_55   C45    C44    N43    C34      174.621   20.000   3
+ VAX      CONST_34 C44    N43    C34    C33      180.000    0.000   0
+ VAX      var_56   N43    C34    C33    N32     -149.473   20.000   3
+ VAX      var_57   C34    C33    C36    C38      156.049   20.000   1
+ VAX      var_58   C34    C33    N32    C26      148.047   20.000   3
+ VAX      CONST_35 C33    N32    C26    C25      180.000    0.000   0
+ VAX      var_59   N32    C26    C25    N24      -74.529   20.000   3
+ VAX      var_60   C26    C25    C28    C29     -178.392   20.000   3
+ VAX      var_61   C25    C28    C29    O30      -68.650   20.000   3
+ VAX      CONST_36 C28    C29    N31    HN11       0.000    0.000   0
+ VAX      var_62   C26    C25    N24    C12     -138.881   20.000   3
+ VAX      CONST_37 C25    N24    C12    C11      180.000    0.000   0
+ VAX      var_63   N24    C12    C11    N10       27.816   20.000   3
+ VAX      var_64   C12    C11    C14    C16       60.621   20.000   3
+ VAX      var_65   C12    C11    N10    C4       118.204   20.000   3
+ VAX      CONST_38 C11    N10    C4     C3       180.000    0.000   0
+ VAX      var_66   N10    C4     C3     C6       109.065   20.000   3
+ VAX      var_67   C4     C3     N2     C1        59.283   20.000   1
+ VAX      var_68   C3     N2     C1     H1_1     -59.955   20.000   1
+ VAX      var_69   C4     C3     C6     C7      -176.194   20.000   3
+ VAX      var_70   C3     C6     C7     C8        60.324   20.000   3
+ VAX      var_71   C6     C7     C9     H9_1      58.488   20.000   3
+ VAX      var_72   C6     C7     C8     H8_1    -177.937   20.000   3
+loop_
+_chem_comp_chir.comp_id
+_chem_comp_chir.id
+_chem_comp_chir.atom_id_centre
+_chem_comp_chir.atom_id_1
+_chem_comp_chir.atom_id_2
+_chem_comp_chir.atom_id_3
+_chem_comp_chir.volume_sign
+ VAX      chir_01  C3     N2     C6     C4        positiv
+ VAX      chir_02  C7     C6     C8     C9        negativ
+ VAX      chir_03  C11    N10    C14    C12       positiv
+ VAX      chir_04  C14    C11    O15    C16       positiv
+ VAX      chir_05  C25    N24    C28    C26       negativ
+ VAX      chir_06  C33    N32    C36    C34       positiv
+ VAX      chir_07  C44    N43    C47    C45       positiv
+ VAX      chir_08  C55    N54    C58    C56       negativ
+ VAX      chir_09  C58    C55    O59    C60       positiv
+ VAX      chir_10  C69    N68    C72    C70       negativ
+ VAX      chir_11  C81    O59    O82    C90       positiv
+ VAX      chir_12  C83    O82    C84    C85       negativ
+ VAX      chir_13  C85    C83    O86    C87       positiv
+ VAX      chir_14  C87    C85    N88    C89       positiv
+ VAX      chir_15  'C1''  O42    'C2''  'O5''     negativ
+ VAX      chir_16  'C2''  'C1''  'O2''  'C3''     positiv
+ VAX      chir_17  'C3''  'C2''  'O3''  'C4''     negativ
+ VAX      chir_18  'C4''  'C3''  'O4''  'C5''     positiv
+ VAX      chir_19  'C5''  'C4''  'O5''  'C6''     positiv
+ VAX      chir_20  C1"    'O2''  C2"    O5"       negativ
+ VAX      chir_21  C3"    C2"    N3"    C3M       negativ
+ VAX      chir_22  C4"    C3"    O4"    C5"       negativ
+ VAX      chir_23  C5"    C4"    O5"    C5M       negativ
+loop_
+_chem_comp_plane_atom.comp_id
+_chem_comp_plane_atom.plane_id
+_chem_comp_plane_atom.atom_id
+_chem_comp_plane_atom.dist_esd
+ VAX      plan-1    C4        0.020
+ VAX      plan-1    C3        0.020
+ VAX      plan-1    O5        0.020
+ VAX      plan-1    N10       0.020
+ VAX      plan-1    HN0       0.020
+ VAX      plan-2    N10       0.020
+ VAX      plan-2    C4        0.020
+ VAX      plan-2    C11       0.020
+ VAX      plan-2    HN0       0.020
+ VAX      plan-3    C16       0.020
+ VAX      plan-3    C14       0.020
+ VAX      plan-3    C17       0.020
+ VAX      plan-3    C18       0.020
+ VAX      plan-3    C19       0.020
+ VAX      plan-3    C21       0.020
+ VAX      plan-3    C20       0.020
+ VAX      plan-3    H17       0.020
+ VAX      plan-3    CL2       0.020
+ VAX      plan-3    O22       0.020
+ VAX      plan-3    H20       0.020
+ VAX      plan-3    H18       0.020
+ VAX      plan-4    C12       0.020
+ VAX      plan-4    C11       0.020
+ VAX      plan-4    O13       0.020
+ VAX      plan-4    N24       0.020
+ VAX      plan-4    HN4       0.020
+ VAX      plan-5    N24       0.020
+ VAX      plan-5    C12       0.020
+ VAX      plan-5    C25       0.020
+ VAX      plan-5    HN4       0.020
+ VAX      plan-6    C29       0.020
+ VAX      plan-6    C28       0.020
+ VAX      plan-6    O30       0.020
+ VAX      plan-6    N31       0.020
+ VAX      plan-6    HN12      0.020
+ VAX      plan-6    HN11      0.020
+ VAX      plan-7    N31       0.020
+ VAX      plan-7    C29       0.020
+ VAX      plan-7    HN11      0.020
+ VAX      plan-7    HN12      0.020
+ VAX      plan-8    C26       0.020
+ VAX      plan-8    C25       0.020
+ VAX      plan-8    O27       0.020
+ VAX      plan-8    N32       0.020
+ VAX      plan-8    HN2       0.020
+ VAX      plan-9    N32       0.020
+ VAX      plan-9    C26       0.020
+ VAX      plan-9    C33       0.020
+ VAX      plan-9    HN2       0.020
+ VAX      plan-10   C36       0.020
+ VAX      plan-10   C33       0.020
+ VAX      plan-10   C38       0.020
+ VAX      plan-10   C37       0.020
+ VAX      plan-10   C40       0.020
+ VAX      plan-10   C41       0.020
+ VAX      plan-10   C39       0.020
+ VAX      plan-10   H38       0.020
+ VAX      plan-10   O22       0.020
+ VAX      plan-10   O42       0.020
+ VAX      plan-10   O66       0.020
+ VAX      plan-10   H37       0.020
+ VAX      plan-11   C34       0.020
+ VAX      plan-11   C33       0.020
+ VAX      plan-11   O35       0.020
+ VAX      plan-11   N43       0.020
+ VAX      plan-11   HN3       0.020
+ VAX      plan-12   N43       0.020
+ VAX      plan-12   C34       0.020
+ VAX      plan-12   C44       0.020
+ VAX      plan-12   HN3       0.020
+ VAX      plan-13   C47       0.020
+ VAX      plan-13   C44       0.020
+ VAX      plan-13   C48       0.020
+ VAX      plan-13   C49       0.020
+ VAX      plan-13   C50       0.020
+ VAX      plan-13   C52       0.020
+ VAX      plan-13   C51       0.020
+ VAX      plan-13   H48       0.020
+ VAX      plan-13   C73       0.020
+ VAX      plan-13   O53       0.020
+ VAX      plan-13   H51       0.020
+ VAX      plan-13   H49       0.020
+ VAX      plan-14   C45       0.020
+ VAX      plan-14   C44       0.020
+ VAX      plan-14   O46       0.020
+ VAX      plan-14   N54       0.020
+ VAX      plan-14   HN5       0.020
+ VAX      plan-15   N54       0.020
+ VAX      plan-15   C45       0.020
+ VAX      plan-15   C55       0.020
+ VAX      plan-15   HN5       0.020
+ VAX      plan-16   C60       0.020
+ VAX      plan-16   C58       0.020
+ VAX      plan-16   C61       0.020
+ VAX      plan-16   C62       0.020
+ VAX      plan-16   C63       0.020
+ VAX      plan-16   C65       0.020
+ VAX      plan-16   C64       0.020
+ VAX      plan-16   H61       0.020
+ VAX      plan-16   H63       0.020
+ VAX      plan-16   O66       0.020
+ VAX      plan-16   CL6       0.020
+ VAX      plan-16   H62       0.020
+ VAX      plan-17   C56       0.020
+ VAX      plan-17   C55       0.020
+ VAX      plan-17   O57       0.020
+ VAX      plan-17   N68       0.020
+ VAX      plan-17   HN8       0.020
+ VAX      plan-18   N68       0.020
+ VAX      plan-18   C56       0.020
+ VAX      plan-18   C69       0.020
+ VAX      plan-18   HN8       0.020
+ VAX      plan-19   C72       0.020
+ VAX      plan-19   C69       0.020
+ VAX      plan-19   C73       0.020
+ VAX      plan-19   C74       0.020
+ VAX      plan-19   C75       0.020
+ VAX      plan-19   C76       0.020
+ VAX      plan-19   C77       0.020
+ VAX      plan-19   C50       0.020
+ VAX      plan-19   O79       0.020
+ VAX      plan-19   H76       0.020
+ VAX      plan-19   O78       0.020
+ VAX      plan-19   H74       0.020
+ VAX      plan-20   C70       0.020
+ VAX      plan-20   C69       0.020
+ VAX      plan-20   O71       0.020
+ VAX      plan-20   O80       0.020
