@@ -44,11 +44,11 @@ function mapDisplayObject (map, name, flag_difference_map, flag_anom_map) {
     this.parameters['color'] = "#ffa0a0";
   }
   this.meshes = [];
-  this.update_isolevel = function (isolevel, radius) {
-    return update_map_isolevel(this, isolevel, radius);
+  this.update_isolevel = function (isolevel, radius, center) {
+    return update_map_isolevel(this, isolevel, radius, center);
   }
-  this.update_mesh = function (radius) {
-    return update_mesh(this, radius);
+  this.update_mesh = function (radius, center) {
+    return update_mesh(this, radius, center);
   }
   this.update_color = function (color, suffix) {
     return update_map_color(this, color, suffix);
@@ -65,16 +65,17 @@ function isomesh (geometry, mesh_name, color)
   return mesh;
 }
 
-function update_mesh (map, radius) {
+function update_mesh (map, radius, center) {
   map.display_data = null;
-  map.update_isolevel(map.parameters['isolevel'], radius);
+  map.update_isolevel(map.parameters['isolevel'], radius, center);
 }
 
-function update_map_isolevel (map, isolevel, radius)
+function update_map_isolevel (map, isolevel, radius, center)
 {
   if (! map.parameters['visible']) return;
   if (! map.display_data) {
-    map.display_data = map.data.points_and_values(last_center, radius);
+    console.log("NEW DATA CENTERED AT " + center);
+    map.display_data = map.data.points_and_values(center, radius);
   }
   var levels = [1];
   var colors = [ map.parameters['color'] ];

@@ -91,139 +91,225 @@ function unit_cell_as_str () {
 
 //----------------------------------------------------------------------
 // MAP GRID
-function map_grid (nxyz) {
-  this.nx = nxyz[0];
-  this.ny = nxyz[1];
-  this.nz = nxyz[2];
-  this.size = this.nx * this.ny * this.nz;
-  this.origin = [0,0,0];
+function GridArray (n_real, n_grid, origin) {
+  this.n_real = n_real; // actual dimensions of the map area
+  this.n_grid = n_grid; // dimensions of the grid for the entire unit cell
+  this.origin = origin;
+  this.size = this.n_real[0] * this.n_real[1] * this.n_real[2];
   this.values = new Float32Array(this.size);
+
   // methods
-  this.grid2index = grid2index;
-  this.grid2frac = grid2frac;
-  this.frac2grid = frac2grid;
-  this.set_grid_value = set_grid_value;
-  this.get_grid_value = get_grid_value;
-}
-
-function grid2index (i, j, k) {
-  var i_ = i % this.nx;
-  if (i_ < 0) {
-    i_ += this.nx;
-  }
-  var j_ = j % this.ny;
-  if (j_ < 0) {
-    j_ += this.ny;
-  }
-  var k_ = k % this.nz;
-  if (k_ < 0) {
-    k_ += this.nz;
-  }
-  return (((i_ - this.origin[0]) * this.ny + (j_ - this.origin[1])) * this.nz +
-          (k_ - this.origin[2]));
-}
-
-function grid2frac (i, j, k) {
-  return [ (i + this.origin[0]) / this.nx,
-           (j + this.origin[1]) / this.ny,
-           (k + this.origin[2]) / this.nz ];
-}
-
-function frac2grid (x, y, z) {
-  return [ Math.floor(x * this.nx) - this.origin[0],
-           Math.floor(y * this.ny) - this.origin[1],
-           Math.floor(z * this.nz) - this.origin[2] ];
-}
-
-function set_grid_value (i, j, k, value) {
-  idx = this.grid2index(i, j, k);
-  if (idx >= this.values.length) {
-    throw Error("Array overflow with indices " + i + "," + j + "," + k);
-  }
-  this.values[idx] = value;
-}
-
-function get_grid_value (i, j, k, value) {
-  idx = this.grid2index(i, j, k);
-  if (idx >= this.values.length) {
-    throw Error("Array overflow with indices " + i + "," + j + "," + k);
+  this.grid2index = function (i, j, k) {
+    var i_ = (i + this.origin[0]) % this.n_real[0];
+    var j_ = (j + this.origin[1]) % this.n_real[1];
+    var k_ = (k + this.origin[2]) % this.n_real[2];
+    if (i_ < 0) {
+      i_ += this.n_real[0];
+    }
+    if (j_ < 0) {
+      j_ += this.n_real[1];
+    }
+    if (k_ < 0) {
+      k_ += this.n_real[2];
+    }
+    return ((i_ * this.n_real[1] + j_ ) * this.n_real[2] + k_);
   }
   
-  return this.values[idx];
+  this.grid2frac = function (i, j, k) {
+    return [ i / this.n_grid[0], j / this.n_grid[1], k / this.n_grid[2] ];
+  }
+
+  // return the equivalent grid coordinates (rounded down) for the given
+  // fractional coordinates. 
+  this.frac2grid = function (x, y, z) {
+    return [ Math.floor(x * this.n_grid[0]),
+             Math.floor(y * this.n_grid[1]),
+             Math.floor(z * this.n_grid[2]) ];
+  }
+  
+  this.set_grid_value = function (i, j, k, value) {
+    idx = this.grid2index(i, j, k);
+    if (idx >= this.size) {
+      throw Error("Array overflow with indices " + i + "," + j + "," + k);
+    }
+    this.values[idx] = value;
+  }
+  
+  this.get_grid_value = function (i, j, k, value) {
+    idx = this.grid2index(i, j, k);
+    if (idx >= this.size) {
+      throw Error("Array overflow with indices " + i + "," + j + "," + k);
+    }
+    return this.values[idx];
+  }
+
+  this.sigma_scale = function () {
+    console.log(this.values);
+    var avg = average(this.values);
+    console.log("mean: " + avg.mean + "  stddev: " + avg.deviation);
+    for (var n = 0; n < this.size; n++) {
+      this.values[n] = (this.values[n] - avg.mean) / avg.deviation;
+    }
+  }
 }
 
 //----------------------------------------------------------------------
-// CCP4 MAP
-// http://www.ccp4.ac.uk/html/maplib.html#description
-function ccp4_map (mapdata) {
-  console.log("Map data size: " + mapdata.length);
-  this.mode = mapdata[3];
-  this.dim = [ mapdata[7], mapdata[8], mapdata[9] ];
-  var cellData = new ArrayBuffer(24);
-  var cellIntData = new Int32Array(cellData);
-  var cellFloatData = new Float32Array(cellData);
-  cellIntData[0] = mapdata[10];
-  cellIntData[1] = mapdata[11];
-  cellIntData[2] = mapdata[12];
-  cellIntData[3] = mapdata[13];
-  cellIntData[4] = mapdata[14];
-  cellIntData[5] = mapdata[15];
-  this.unit_cell = new UnitCell(
-    cellFloatData[0],
-    cellFloatData[1],
-    cellFloatData[2],
-    cellFloatData[3],
-    cellFloatData[4],
-    cellFloatData[5]);
-  this.min = mapdata[19];
-  this.max = mapdata[20];
-  this.mean = mapdata[21];
-  this.sg_number = mapdata[22];
-  this.lskflg = mapdata[24];
-  n_crs = [ mapdata[0], mapdata[1], mapdata[2] ];
-  var order_xyz = [
-    mapdata[16] - 1,
-    mapdata[17] - 1,
-    mapdata[18] - 1,
-  ];
-  var origin = [ mapdata[4], mapdata[5], mapdata[6] ];
-  this.origin = [
-    origin[order_xyz[0]],
-    origin[order_xyz[1]],
-    origin[order_xyz[2]]
-  ];
-  this.grid = [
-    n_crs[order_xyz[0]],
-    n_crs[order_xyz[1]],
-    n_crs[order_xyz[2]]
-  ];
-  this.data = new map_grid(this.grid);
-  var i_crs = [0,0,0];
-  var idx = 256;
-  var section_size = n_crs[0] * n_crs[1];
-  array_buffer = new ArrayBuffer(4);
-  intData = new Int32Array(array_buffer);
-  floatData = new Float32Array(array_buffer);
-  for (i_crs[2] = 0; i_crs[2] < n_crs[2]; i_crs[2]++) {
-    for (i_crs[1] = 0; i_crs[1] < n_crs[1]; i_crs[1]++) {
-      for (i_crs[0] = 0; i_crs[0] < n_crs[0]; i_crs[0]++) {
-        var i = i_crs[order_xyz[0]];
-        var j = i_crs[order_xyz[1]];
-        var k = i_crs[order_xyz[2]];
-        intData[0] = mapdata[idx++];
-        this.data.set_grid_value(i, j, k, floatData[0]);
-  }}}
-  if (idx != mapdata.length) {
-    throw Error("Index does not match data length: " + idx + " vs. "+
-                mapdata.length);
+// ELECTRON DENSITY MAP
+function Map () {
+  this.n_real = null;
+  this.origin = null;
+  this.unit_cell = null;
+  this.data = null;
+
+  // http://www.ccp4.ac.uk/html/maplib.html#description
+  this.from_ccp4 = function (mapdata) {
+    console.log("Map data size: " + mapdata.length);
+    this.mode = mapdata[3];
+    this.n_grid = [ mapdata[7], mapdata[8], mapdata[9] ];
+    var cellData = new ArrayBuffer(24);
+    var cellIntData = new Int32Array(cellData);
+    var cellFloatData = new Float32Array(cellData);
+    cellIntData[0] = mapdata[10];
+    cellIntData[1] = mapdata[11];
+    cellIntData[2] = mapdata[12];
+    cellIntData[3] = mapdata[13];
+    cellIntData[4] = mapdata[14];
+    cellIntData[5] = mapdata[15];
+    this.unit_cell = new UnitCell(
+      cellFloatData[0],
+      cellFloatData[1],
+      cellFloatData[2],
+      cellFloatData[3],
+      cellFloatData[4],
+      cellFloatData[5]);
+    this.min = mapdata[19];
+    this.max = mapdata[20];
+    this.mean = mapdata[21];
+    this.sg_number = mapdata[22];
+    this.lskflg = mapdata[24];
+    n_crs = [ mapdata[0], mapdata[1], mapdata[2] ];
+    var order_xyz = [
+      mapdata[16] - 1,
+      mapdata[17] - 1,
+      mapdata[18] - 1,
+    ];
+    var origin = [ mapdata[4], mapdata[5], mapdata[6] ];
+    this.origin = [
+      origin[order_xyz[0]],
+      origin[order_xyz[1]],
+      origin[order_xyz[2]]
+    ];
+    this.n_real = [
+      n_crs[order_xyz[0]],
+      n_crs[order_xyz[1]],
+      n_crs[order_xyz[2]]
+    ];
+    this.data = new GridArray(this.n_real, this.n_grid, this.origin);
+    var i_crs = [0,0,0];
+    var idx = 256;
+    var section_size = n_crs[0] * n_crs[1];
+    var array_buffer = new ArrayBuffer(4);
+    var intData = new Int32Array(array_buffer);
+    var floatData = new Float32Array(array_buffer);
+    for (i_crs[2] = 0; i_crs[2] < n_crs[2]; i_crs[2]++) {
+      for (i_crs[1] = 0; i_crs[1] < n_crs[1]; i_crs[1]++) {
+        for (i_crs[0] = 0; i_crs[0] < n_crs[0]; i_crs[0]++) {
+          var i = i_crs[order_xyz[0]] - this.origin[0];
+          var j = i_crs[order_xyz[1]] - this.origin[1];
+          var k = i_crs[order_xyz[2]] - this.origin[2];
+          intData[0] = mapdata[idx++];
+          this.data.set_grid_value(i, j, k, floatData[0]);
+    }}}
+    if (idx != mapdata.length) {
+      throw Error("Index does not match data length: " + idx + " vs. "+
+                  mapdata.length);
+    }
   }
-  if (true) { //(false) {
-    console.log("unit cell grid: " + this.dim);
+
+  // DSN6 MAP FORMAT
+  // http://www.uoxray.uoregon.edu/tnt/manual/node104.html
+  this.from_dsn6 = function (mapdata) {
+    var array_buffer = new ArrayBuffer(512);
+    var headerBytes = new Uint8Array(array_buffer);
+    var header = new Int16Array(array_buffer);
+    for (var i = 0; i < 512; i++) {
+      headerBytes[i] = mapdata[i];
+    }
+    if (header[18] != 100) {
+      for (var i = 0; i < 256; i++) {
+        headerBytes[(i*2)] = mapdata[(i*2)+1];
+        headerBytes[(i*2)+1] = mapdata[i*2];
+      }
+    }
+    if (header[18] != 100) {
+      throw Error("Endian swap failed");
+    }
+    this.origin = [
+      header[0],
+      header[1],
+      header[2]
+    ];
+    this.n_real = [
+      header[3],
+      header[4],
+      header[5]
+    ];
+    this.n_grid = [
+      header[6],
+      header[7],
+      header[8]
+    ];
+    var cell_scale_factor = header[17];
+    this.unit_cell = new UnitCell(
+      header[9] / cell_scale_factor,
+      header[10] / cell_scale_factor,
+      header[11] / cell_scale_factor,
+      header[12] / cell_scale_factor,
+      header[13] / cell_scale_factor,
+      header[14] / cell_scale_factor
+    );
+    this.data = new GridArray(this.n_real, this.n_grid, this.origin);
+    var data_scale_factor = header[15] / header[18] + header[17];
+    var i_crs = [0,0,0];
+    var order_xyz = [2,1,0];
+    var n_crs = this.n_real;
+    var idx = 512;
+    var block_size = 8;
+    var xblocks = ((this.n_real[0] - 1) / block_size) + 1;
+    var yblocks = ((this.n_real[1] - 1) / block_size) + 1;
+    var zblocks = ((this.n_real[2] - 1) / block_size) + 1;
+    console.log(this.data.grid2index(0,0,0));
+    console.log(xblocks + ", " + yblocks + ", " + zblocks);
+    // FIXME not working yet
+    for(var cc = 0; cc < zblocks; cc++) {
+      for(var bb = 0; bb < yblocks; bb++) {
+        for(var aa = 0; aa < xblocks; aa++) {
+          for(var c = 0; c < block_size; c++) {
+                var xc = c + cc * block_size;
+                var ic = xc + this.origin[2];
+                for(var b = 0; b < block_size; b++) {
+                  var xb = b + bb * block_size;
+                  var ib = xb + this.origin[1];
+                  for(var a = 0; a < block_size; a++) {
+                    var xa = a + aa * block_size;
+                    var ia = xa + this.origin[0];
+            if ((ia < this.n_real[0]) && (ib < this.n_real[1]) && (ic < this.n_real[2])) {
+          var density = mapdata[idx]*data_scale_factor;
+          var i = ia, j = ib, k = ic;
+          this.data.set_grid_value(i, j, k, density);
+          idx += 1; }
+    }}} }}}
+    this.data.sigma_scale();
+    console.log(Math.max(this.data.data));
+  }
+
+  this.show = function () {
     console.log("map origin: " + this.origin);
-    console.log("map grid: " + this.grid);
+    console.log("map size: " + this.n_real);
+    console.log("unit cell grid: " + this.n_grid);
     console.log(this.unit_cell.as_str());
   }
-  // methods
+
   this.points_and_values = function (center, radius) {
     return new cartesian_map_data(this.unit_cell, this.data, center, radius);
   }
@@ -242,7 +328,7 @@ function cartesian_map_data (unit_cell, map_data, center, radius) {
   var frac_max = unit_cell.fractionalize(xyz_max);
   var grid_min = map_data.frac2grid(frac_min[0], frac_min[1], frac_min[2]);
   var grid_max = map_data.frac2grid(frac_max[0], frac_max[1], frac_max[2]);
-  //console.log("GRID RANGE: " + grid_min + ", " + grid_max);
+  console.log("GRID RANGE: " + grid_min + ", " + grid_max);
   this.points = [];
   this.values = [];
   var nx = grid_max[0] - grid_min[0] + 1;
@@ -260,12 +346,12 @@ function cartesian_map_data (unit_cell, map_data, center, radius) {
         this.points.push( new THREE.Vector3(site_cart[0], site_cart[1],
                                             site_cart[2]) );
         map_value = map_data.get_grid_value(i,j,k);
-        if (! map_value) {
-          throw Error("oops: " + map_value);
+        if (map_value == null) {
+          throw Error("oops: " + map_value + " (" + i+","+j+","+k+")");
         }
         this.values.push( map_data.get_grid_value(i,j,k) );
   }}}
-  //console.log("size: " + nx + ", " + ny + ", " + nz);
+  console.log("size: " + nx + ", " + ny + ", " + nz);
 }
 
 //----------------------------------------------------------------------
@@ -289,10 +375,18 @@ function midpoint (xyz1, xyz2) {
   ];
 }
 
+// https://gist.github.com/matthutchinson/1648603
+average = function(a) {
+  var r = {mean: 0, variance: 0, deviation: 0}, t = a.length;
+  for(var m, s = 0, l = t; l--; s += a[l]);
+  for(m = r.mean = s / t, l = t, s = 0; l--; s += Math.pow(a[l] - m, 2));
+  return r.deviation = Math.sqrt(r.variance = s / t), r;
+}
+
 // Exports
 return {
 	'UnitCell': UnitCell,
-	'ccp4_map': ccp4_map,
+	'Map': Map,
 	'midpoint': midpoint,
 	'distance': distance,
 	'deg2rad': deg2rad,

@@ -162,14 +162,15 @@ function XtalViewer (element_id, size, draw_gui, draw_axes) {
     var center = [ this.controls.target.x, this.controls.target.y,
                    this.controls.target.z ];
     if (force ||
-        ((center[0] != this.last_center[0]) ||
-         (center[1] != this.last_center[1]) ||
-         (center[2] != this.last_center[2]))) {
+        ((Math.abs(center[0] - this.last_center[0]) > 0.01) ||
+         (Math.abs(center[1] - this.last_center[1]) > 0.01) ||
+         (Math.abs(center[2] - this.last_center[2]) > 0.01))) {
       this.last_center = center;
       for (var i = 0; i < this.maps.length; i++) {
         this.maps[i].clear_mesh(true);
-        this.maps[i].update_mesh(global_parameters['map_radius']);
-        this.render_mesh(maps[i]);
+        this.maps[i].update_mesh(this.global_parameters['map_radius'],
+          center);
+        this.render_mesh(this.maps[i]);
       }
     }
   }
@@ -200,7 +201,7 @@ function XtalViewer (element_id, size, draw_gui, draw_axes) {
   this.toggle_map_visibility = function (map, visible) {
     map.parameters['visible'] = visible;
     if (visible) {
-      map.update_mesh(this.global_parameters['map_radius']);
+      map.update_mesh(this.global_parameters['map_radius'], this.last_center);
       this.render_mesh(map);
     } else {
       map.clear_mesh();
@@ -268,6 +269,9 @@ function XtalViewer (element_id, size, draw_gui, draw_axes) {
   this.load_ccp4_map = function (url, map_name, diff_map_flag) {
     return load_ccp4_map(this, url, map_name, diff_map_flag);
   }
+  this.load_dsn6_map = function (url, map_name, diff_map_flag) {
+    return load_dsn6_map(this, url, map_name, diff_map_flag);
+  }
 
 }
 
@@ -299,10 +303,6 @@ function OnChange (viewer) {
   //redrawMaps();
 }
 
-function OnChange2 () {
-  console.log("OnChange2");
-}
-
 function OnEnd (viewer) {
   viewer.redrawAxes();
   viewer.redrawMaps();
@@ -314,9 +314,8 @@ function animate (viewer) {
   requestAnimationFrame( viewer.animate );
 }
 
-function initialize_map_object (viewer, mapdata, map_name, diff_map_flag,
+function initialize_map_object (viewer, map, map_name, diff_map_flag,
     anom_map_flag) {
-  var map = new xtal.ccp4_map(mapdata);
   if (! diff_map_flag) {
     var diff_map_flag = ((map_name == "mFo-DFc") ||
       (map_name.indexOf("_mFo-DFc") != -1)); // XXX HACK
@@ -336,7 +335,8 @@ function initialize_map_object (viewer, mapdata, map_name, diff_map_flag,
   viewer.maps.push(map_display);
   //var uc = new UnitCellBox(map.unit_cell);
   //scene.add(uc);
-  map_display.update_mesh(viewer.global_parameters['map_radius']);
+  map_display.update_mesh(viewer.global_parameters['map_radius'],
+    viewer.last_center);
   viewer.render_mesh(map_display);
 }
 
@@ -366,7 +366,7 @@ function create_gui (viewer) {
   var mapRadius = viewer.gui.add( viewer.global_parameters,
     'map_radius' ).min(5).max(20).step(1).name('Map radius').listen();
   mapRadius.onChange(function (value){
-    redrawMaps(true);
+    viewer.redrawMaps(true);
   });
   viewer.gui.open();
 }
@@ -384,7 +384,9 @@ function setup_map_dat_gui (viewer, map) {
     'isolevel').min(0).max(8).step(0.1).name('Contour level').listen();
   isoLevel.onChange(function (value){
     map.clear_mesh();
-    map.update_isolevel(value, viewer.global_parameters['map_radius']);
+    console.log("CENTER IS " + viewer.last_center);
+    map.update_isolevel(value, viewer.global_parameters['map_radius'],
+      viewer.last_center);
     viewer.render_mesh(map);
   });
   if (map.flag_difference_map) {
@@ -500,7 +502,33 @@ function load_ccp4_map (viewer, url, map_name, diff_map_flag) {
     if (req.readyState == 4) {
       if(req.status == 200) {
         var map_data = new Int32Array(req.response);
-        viewer.initialize_map_object(map_data, map_name, diff_map_flag);
+        var map = new xtal.Map()
+        map.from_ccp4(map_data);
+        map.show();
+        viewer.initialize_map_object(map, map_name, diff_map_flag);
+      } else {
+        console.log("Error fetching " + url);
+      }
+    }
+  };
+  req.send(null);
+}
+
+function load_dsn6_map (viewer, url, map_name, diff_map_flag) {
+  var req = new XMLHttpRequest();
+  req.responseType = "arraybuffer";
+  console.log(url);
+  req.open('GET', url, true);
+  req.onreadystatechange = function (aEvt) {
+    if (req.readyState == 4) {
+      if(req.status == 200) {
+        var map_data = new Uint8Array(req.response);
+        var map = new xtal.Map()
+        map.from_dsn6(map_data);
+        console.log("DSN6 MAP:")
+        map.show();
+  //      console.log("###");
+        viewer.initialize_map_object(map, map_name, diff_map_flag);
       } else {
         console.log("Error fetching " + url);
       }
