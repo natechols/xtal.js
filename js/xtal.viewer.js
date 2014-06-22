@@ -127,7 +127,7 @@ function XtalViewer (element_id, size, draw_gui, draw_axes) {
       delete this.maps[i];
     }
     for (var i = 0; i < this.models.length; i++) {
-      this.clear_model_geom(models[i]);
+      this.clear_model_geom(this.models[i]);
       delete this.models[i];
     }
     this.gui_folders = [];
@@ -272,7 +272,9 @@ function XtalViewer (element_id, size, draw_gui, draw_axes) {
   this.load_dsn6_map = function (url, map_name, diff_map_flag) {
     return load_dsn6_map(this, url, map_name, diff_map_flag);
   }
-
+  this.load_eds_maps = function (pdb_id) {
+    return load_eds_maps(this, pdb_id);
+  }
 }
 
 //**********************************************************************
@@ -384,7 +386,6 @@ function setup_map_dat_gui (viewer, map) {
     'isolevel').min(0).max(8).step(0.1).name('Contour level').listen();
   isoLevel.onChange(function (value){
     map.clear_mesh();
-    console.log("CENTER IS " + viewer.last_center);
     map.update_isolevel(value, viewer.global_parameters['map_radius'],
       viewer.last_center);
     viewer.render_mesh(map);
@@ -445,10 +446,8 @@ function load_mon_lib (viewer, url, model_id) {
   var reader = new xtal.cif.Reader();
   reader.load(url, function(cif_model) {
     var comp_list = cif_model.get_block('comp_list');
-    console.log(cif_model);
     var first_block = comp_list.get('_chem_comp.id')[0];
     var first_block = cif_model.get_block('comp_' + first_block);
-    console.log(first_block);
     var model = new xtal.model.Model();
     model.from_monlib(first_block);
     viewer.initialize_model_object(model, model_id);
@@ -468,7 +467,6 @@ function load_mmcif (viewer, url, model_name) {
 // Load small molecule CIF
 function load_cif(viewer, url, model_name) {
   var reader = new xtal.cif.Reader();
-  console.log(url);
   reader.load(url, function(cif_model) {
     var model = new xtal.model.Model();
     model.from_cif(cif_model.first_block());
@@ -496,7 +494,6 @@ function load_pdb (viewer, url, model_name) {
 function load_ccp4_map (viewer, url, map_name, diff_map_flag) {
   var req = new XMLHttpRequest();
   req.responseType = "arraybuffer";
-  console.log(url);
   req.open('GET', url, true);
   req.onreadystatechange = function (aEvt) {
     if (req.readyState == 4) {
@@ -517,7 +514,6 @@ function load_ccp4_map (viewer, url, map_name, diff_map_flag) {
 function load_dsn6_map (viewer, url, map_name, diff_map_flag) {
   var req = new XMLHttpRequest();
   req.responseType = "arraybuffer";
-  console.log(url);
   req.open('GET', url, true);
   req.onreadystatechange = function (aEvt) {
     if (req.readyState == 4) {
@@ -548,11 +544,11 @@ function validate_pdb_id (pdb_id) {
         }
       }
     });
+    throw Error("Bad PDB ID.");
   }
 }
 
 function fetchPDB (viewer, pdb_id) {
-  var req = new XMLHttpRequest();
   url = 'http://www.rcsb.org/pdb/files/' + pdb_id + ".pdb"
   load_pdb(viewer, url, pdb_id);
 }
@@ -590,4 +586,22 @@ function requestPDB (viewer, pdb_id) {
   };
   req1.send(null);
   return;
+}
+
+// Load structure from Uppsula electron density server.  This does not actually
+// work without server modifications because of JavaScript's policy against
+// loading external resources.  The easiest solution is to use a reverse proxy,
+// e.g. in Apache http.conf:
+// ProxyPass /eds/ http://eds.bmc.uu.se/eds/
+function load_eds_maps (viewer, pdb_id) {
+  pdb_id = pdb_id.toLowerCase();
+  validate_pdb_id(pdb_id);
+  viewer.fetchPDB(pdb_id);
+  subdir = pdb_id.substring(1,3);
+  //base_url = "http://eds.bmc.uu.se/eds/dfs/" + subdir + "/" + pdb_id + "/";
+  base_url = "/eds/dfs/" + subdir + "/" + pdb_id + "/";
+  two_fofc_map = base_url + pdb_id + ".omap"
+  fofc_map = base_url + pdb_id + "_diff.omap"
+  viewer.load_dsn6_map(two_fofc_map, pdb_id + "_2mFo-DFc", false);
+  viewer.load_dsn6_map(fofc_map, pdb_id + "_mFo-DFc", true);
 }

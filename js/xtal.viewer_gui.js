@@ -12,8 +12,35 @@ xtal.viewer = (function(module) {
 	}
 })(xtal);
 
-//----------------------------------------------------------------------
-// JQUERY GUI STUFF
+// draw the widget
+function draw_pdb_id_request (viewer, callback) {
+  var body = $("body");
+  var pdb_div = $("<div/>").attr("class", "centeredControls").attr("id",
+    "loadControls").append(
+      $("<form/>").attr("id", "pdbIdForm").append(
+        $("<div/>").attr("class", "controlItem").attr("id", "pdbFetch").append(
+          $("<span/>").text("Load PDB ID:"),
+          $("<input/>").attr("type", "text").attr("id", "pdbIdInput").attr(
+            "class", "pdbIdInput")
+     //     $("<input/>").attr("type", "submit").attr("style", "display:none")
+        )));
+  $(document).on("submit", "#pdbIdForm", function (event) {
+  //$("#pdbIdForm").submit(function (event){
+    event.preventDefault();
+    var pdb_id = $("#pdbIdInput").val();
+    collapsePanel();
+    callback(viewer, pdb_id);
+    return false;
+  });
+  body.append(pdb_div);
+  var show_btn = $("<div/>").attr("class", "controlButton").attr("id",
+    "loadControlsButton").append(
+      $("<div/>").attr("class", "controlMargin").attr("id",
+        "loadControlsBtnMargin").append(
+        $("<div/>").attr("class", "controlItem").attr("id",
+          "loadControlsShow").text("Load structure...")));
+  body.append(show_btn);
+}
 
 function expandPanel() {
   $('#loadControls').fadeIn('fast');
@@ -44,17 +71,20 @@ function init_gui () {
   $(document).ready(function() {
     /* expandPanel on click, too - good for mobile devices without mouse */
     $('#loadControlsButton').click(expandPanel);
-    $('#featureHandle').click(expandFeatures);
-    $('#featureHandle').hoverIntent({
-      over: expandFeatures,
-      timeout: 10,
-      out: function() {return true;}
-    });
-    $('#featureList').hoverIntent({
-      over: function() { return true;},
-      timeout: 10,
-      out: collapseFeatures
-    });
+    var feature_handle = $('#featureHandle');
+    if (feature_handle) {
+      $('#featureHandle').click(expandFeatures);
+      $('#featureHandle').hoverIntent({
+        over: expandFeatures,
+        timeout: 10,
+        out: function() {return true;}
+      });
+      $('#featureList').hoverIntent({
+        over: function() { return true;},
+        timeout: 10,
+        out: collapseFeatures
+      });
+    }
   });
 }
 
@@ -121,18 +151,35 @@ function getQuery(viewer, query) {
   return have_query;
 }
 
-function requestFromServer (evt) {
+function requestFromServer (viewer) {
   collapsePanel();
-  reset_viewer();
+  viewer.reset();
   var pdb_id = $("#pdbIdInput").val();
-  requestPDB(pdb_id);
+  viewer.requestPDB(pdb_id);
 }
 
-function loadPDBFromForm (viewer, input_id) {
-  if (! input_id) {
-    input_id = "#pdbIdInput";
-  }
-  var pdb_id = $(input_id).val();
+function loadPDBFromForm (viewer, pdb_id) {
   validate_pdb_id(pdb_id);
   viewer.fetchPDB(pdb_id);
+}
+
+function loadEDSFromForm (viewer, pdb_id) {
+  viewer.reset();
+  viewer.load_eds_maps(pdb_id);
+}
+
+function getEDSQuery (viewer, query) {
+  if (! query) {
+    query = window.location.search.substring(1);
+  }
+  var vars = query.split("&");
+  have_query = false;
+  for (var i=0;i<vars.length;i++) {
+    var pair = vars[i].split("=");
+    if (pair[0] == "pdb") {
+      viewer.load_eds_maps(pair[1]);
+      return true;
+    }
+  }
+  return false;
 }

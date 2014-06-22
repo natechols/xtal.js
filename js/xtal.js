@@ -144,9 +144,7 @@ function GridArray (n_real, n_grid, origin) {
   }
 
   this.sigma_scale = function () {
-    console.log(this.values);
     var avg = average(this.values);
-    console.log("mean: " + avg.mean + "  stddev: " + avg.deviation);
     for (var n = 0; n < this.size; n++) {
       this.values[n] = (this.values[n] - avg.mean) / avg.deviation;
     }
@@ -214,9 +212,9 @@ function Map () {
     for (i_crs[2] = 0; i_crs[2] < n_crs[2]; i_crs[2]++) {
       for (i_crs[1] = 0; i_crs[1] < n_crs[1]; i_crs[1]++) {
         for (i_crs[0] = 0; i_crs[0] < n_crs[0]; i_crs[0]++) {
-          var i = i_crs[order_xyz[0]] - this.origin[0];
-          var j = i_crs[order_xyz[1]] - this.origin[1];
-          var k = i_crs[order_xyz[2]] - this.origin[2];
+          var i = i_crs[order_xyz[0]] + this.origin[0];
+          var j = i_crs[order_xyz[1]] + this.origin[1];
+          var k = i_crs[order_xyz[2]] + this.origin[2];
           intData[0] = mapdata[idx++];
           this.data.set_grid_value(i, j, k, floatData[0]);
     }}}
@@ -228,6 +226,10 @@ function Map () {
 
   // DSN6 MAP FORMAT
   // http://www.uoxray.uoregon.edu/tnt/manual/node104.html
+  // This format is much different from CCP4/MRC maps, and was obviously
+  // designed for vastly more primitive computers.  Since density values are
+  // stored as bytes rather than (4-byte) floates, it has the big advantage
+  // of being significantly more compact than CCP4 maps.
   this.from_dsn6 = function (mapdata) {
     var array_buffer = new ArrayBuffer(512);
     var headerBytes = new Uint8Array(array_buffer);
@@ -274,33 +276,40 @@ function Map () {
     var order_xyz = [2,1,0];
     var n_crs = this.n_real;
     var idx = 512;
-    var block_size = 8;
-    var xblocks = ((this.n_real[0] - 1) / block_size) + 1;
-    var yblocks = ((this.n_real[1] - 1) / block_size) + 1;
-    var zblocks = ((this.n_real[2] - 1) / block_size) + 1;
-    console.log(this.data.grid2index(0,0,0));
-    console.log(xblocks + ", " + yblocks + ", " + zblocks);
-    // FIXME not working yet
-    for(var cc = 0; cc < zblocks; cc++) {
-      for(var bb = 0; bb < yblocks; bb++) {
-        for(var aa = 0; aa < xblocks; aa++) {
-          for(var c = 0; c < block_size; c++) {
-                var xc = c + cc * block_size;
-                var ic = xc + this.origin[2];
-                for(var b = 0; b < block_size; b++) {
-                  var xb = b + bb * block_size;
-                  var ib = xb + this.origin[1];
-                  for(var a = 0; a < block_size; a++) {
-                    var xa = a + aa * block_size;
-                    var ia = xa + this.origin[0];
-            if ((ia < this.n_real[0]) && (ib < this.n_real[1]) && (ic < this.n_real[2])) {
-          var density = mapdata[idx]*data_scale_factor;
-          var i = ia, j = ib, k = ic;
-          this.data.set_grid_value(i, j, k, density);
-          idx += 1; }
-    }}} }}}
+    var n_blocks = [
+      Math.ceil(this.n_real[0] / 8),
+      Math.ceil(this.n_real[1] / 8),
+      Math.ceil(this.n_real[2] / 8)
+    ];
+    for(var zz = 0; zz < n_blocks[2]; zz++) {
+      for(var yy = 0; yy < n_blocks[1]; yy++) {
+        for(var xx = 0; xx < n_blocks[0]; xx++) { // outer loop
+          var brick = new Uint8Array(512);
+          // read an 8x8x8 brick, swapping bytes
+          for (var i = 0; i < 256; i++) {
+            brick[(i*2)] = mapdata[idx+(i*2)+1];
+            brick[(i*2)+1] = mapdata[idx+i*2];
+          }
+          idx += 512;
+          var i_byte = 0;
+          for (var z = 0; z < 8; z++) {
+            for (var y = 0; y < 8; y++) {
+              for (var x = 0; x < 8; x++) { // inner loop
+                var i_ = (xx * 8) + x;
+                var j_ = (yy * 8) + y;
+                var k_ = (zz * 8) + z;
+                if ((i_ < this.n_real[0]) && (j_ < this.n_real[1]) &&
+                    (k_ < this.n_real[2])) {
+                  var i = i_ + this.origin[0];
+                  var j = j_ + this.origin[1];
+                  var k = k_ + this.origin[2];
+                  var density = brick[i_byte] * data_scale_factor;
+                  this.data.set_grid_value(i, j, k, density);
+                }
+                i_byte += 1;
+          }}} // end inner loop
+    }}} // end outer loop
     this.data.sigma_scale();
-    console.log(Math.max(this.data.data));
   }
 
   this.show = function () {
@@ -328,7 +337,6 @@ function cartesian_map_data (unit_cell, map_data, center, radius) {
   var frac_max = unit_cell.fractionalize(xyz_max);
   var grid_min = map_data.frac2grid(frac_min[0], frac_min[1], frac_min[2]);
   var grid_max = map_data.frac2grid(frac_max[0], frac_max[1], frac_max[2]);
-  console.log("GRID RANGE: " + grid_min + ", " + grid_max);
   this.points = [];
   this.values = [];
   var nx = grid_max[0] - grid_min[0] + 1;
@@ -351,7 +359,6 @@ function cartesian_map_data (unit_cell, map_data, center, radius) {
         }
         this.values.push( map_data.get_grid_value(i,j,k) );
   }}}
-  console.log("size: " + nx + ", " + ny + ", " + nz);
 }
 
 //----------------------------------------------------------------------
