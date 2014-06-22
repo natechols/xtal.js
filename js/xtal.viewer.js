@@ -12,26 +12,30 @@ xtal.viewer = (function(module) {
 	}
 })(xtal);
 
+var orthographic = false; // FIXME doesn't work properly with controls
 
-// standard global variables
-var orthographic = false;
-var container, scene, camera, renderer, controls, origin;
-//var keyboard = new THREEx.KeyboardState();
-var clock = new THREE.Clock();
-var maps = [];
-var models = [];
-var axes;
-var gui;
-var gui_folders = [];
-var last_center;
-var global_parameters = {
-  map_radius: 10.0,
-  auto_zoom: true
-};
+function XtalViewer (element_id, size, draw_gui, draw_axes) {
+  if (! element_id) {
+    element_id = "ThreeJS";
+  }
+  if (! size) {
+    size = [window.innerWidth, window.innerHeight];
+  }
+  this.maps = [];
+  this.models = [];
+  this.gui_folders = [];
+  this.global_parameters = {
+    map_radius: 10.0,
+    auto_zoom: true
+  };
 
-function init_3d() {
+  var controls, camera, renderer, scene, container;
+  //var keyboard = new THREEx.KeyboardState();
+  //var clock = new THREE.Clock();
   scene = new THREE.Scene();
-  var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
+  this.scene = scene;
+  var SCREEN_WIDTH = size[0], SCREEN_HEIGHT = size[1];
+  console.log(SCREEN_WIDTH + " " + SCREEN_HEIGHT);
   var ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT;
   if (orthographic) {
     var NEAR = 5.0, FAR = 100;
@@ -40,6 +44,7 @@ function init_3d() {
     var VIEW_ANGLE = 45, NEAR = 5.0, FAR = 1000;
     camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
   }
+  this.camera = camera;
   scene.add(camera);
   scene.fog = new THREE.Fog(0x000000, 60, 100);
   camera.position.set(20,20,60);
@@ -48,98 +53,268 @@ function init_3d() {
     renderer = new THREE.WebGLRenderer( {antialias:true} );
   else
     renderer = new THREE.CanvasRenderer();
+  this.renderer = renderer;
   renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
   renderer.domElement.style.position = "absolute";
   renderer.domElement.style.top = "0px";
   renderer.domElement.style.left = "0px";
 
-  container = document.getElementById( 'ThreeJS' );
+  container = document.getElementById(element_id);
   container.appendChild( renderer.domElement );
-  controls = new THREE.TrackballControls( camera, renderer.domElement );
+  controls = new THREE.TrackballControls( camera,  renderer.domElement );
+  this.controls = controls;
   controls.minDistance = 5;
   controls.maxDistance = 400;
-  controls.addEventListener( 'end', OnEnd );
-  controls.addEventListener( 'change', OnChange );
-  last_center = [ controls.target.x, controls.target.y, controls.target.z ];
+  this.last_center = [controls.target.x, controls.target.y, controls.target.z];
 
   var light = new THREE.PointLight(0xffffff);
   light.position.set(0,10,0);
   scene.add(light);
   origin = new Axis(0.5, [0,0,0], true);
   scene.add(origin);
-  redrawAxes();
-  create_gui();
-  window.addEventListener( 'resize', onWindowResize, false );
-}
 
-function animate()
-{
-  requestAnimationFrame( animate );
-  render();
-  update();
-}
-
-function update()
-{
-  controls.update();
-}
-
-function render()
-{
-  renderer.render( scene, camera );
-}
-
-function create_gui () {
-  gui = new dat.GUI();
-  var mapRadius = gui.add( global_parameters,
-    'map_radius' ).min(5).max(20).step(1).name('Map radius').listen();
-  mapRadius.onChange(function (value){
-    redrawMaps(true);
-  });
-  gui.open();
-}
-
-function reset_viewer () {
-  if (gui) {
-    gui.destroy();
-  }
-  create_gui();
-  for (var i = 0; i < maps.length; i++) {
-    maps[i].clear_mesh(true);
-    delete maps[i];
-  }
-  for (var i = 0; i < models.length; i++) {
-    clear_model_geom(models[i]);
-    delete models[i];
-  }
-  gui_folders = [];
-  maps = [];
-  models = []
-  camera.position.set(20,20,60);
-  camera.lookAt(scene.position);
-  controls.update();
-  OnChange();
-}
-
-function readCCP4Map(evt) {
-  var file = evt.target.files[0];
-  if (file) {
-    console.log("Reading file " + file.name);
-    var fr = new FileReader();
-    var fn = file.name;
-    fr.onloadend = function() {
-      var contents = this.result;
-      console.log("read " + contents.length + " bytes");
-      var mapdata = new Int32Array(contents);
-      initialize_map_object(mapdata, fn);
-    };
-    fr.readAsArrayBuffer(file);
+  this.create_gui = function () { return create_gui(this); };
+  if (draw_gui) {
+    this.create_gui();
   } else {
-    console.log("No file!");
+    this.gui = null;
   }
+
+  // EVENTS (IMPLEMENTATIONS BELOW)
+  var self = this;
+  this.OnWindowResize = function (evt) {
+    return OnWindowResize(self);
+  }
+  this.OnChange = function (evt) {
+    return OnChange(self);
+  }
+  this.OnEnd = function (evt) {
+    return OnEnd(self);
+  }
+  this.animate = function () {
+    return animate(self);
+  }
+
+  // ADD EVENT LISTENERS
+  window.addEventListener( 'resize', this.OnWindowResize, false );
+  this.controls.addEventListener( 'end', this.OnEnd );
+  this.controls.addEventListener( 'change', this.OnChange );
+
+  this.update = function () {
+    this.controls.update();
+  }
+
+  this.render = function () {
+    this.renderer.render( this.scene, this.camera );
+  }
+
+  this.redrawAxes = function () {
+    if (this.axes) {
+      this.scene.remove(this.axes);
+    }
+    var center = this.controls.target;
+    this.axes = new Axis(0.5, [ center.x, center.y,  center.z ], false );
+    this.scene.add(this.axes);
+  }
+
+  this.reset = function () {
+    if (this.gui) {
+      this.gui.destroy();
+      this.create_gui();
+    }
+    for (var i = 0; i < this.maps.length; i++) {
+      this.maps[i].clear_mesh(true);
+      delete this.maps[i];
+    }
+    for (var i = 0; i < this.models.length; i++) {
+      this.clear_model_geom(models[i]);
+      delete this.models[i];
+    }
+    this.gui_folders = [];
+    this.maps = [];
+    this.models = []
+    this.camera.position.set(20,20,60);
+    this.camera.lookAt(this.scene.position);
+    this.controls.update();
+    this.OnChange();
+  }
+
+  this.recenter = function (xyz) {
+    this.controls.target.x = xyz[0];
+    this.controls.target.y = xyz[1];
+    this.controls.target.z = xyz[2];
+    this.camera.lookAt(xyz);
+    this.controls.update();
+    this.redrawMaps();
+    this.render();
+  }
+  
+  this.zoomXYZ = function (xyz) {
+    this.camera.position.x = xyz[0];
+    this.camera.position.y = xyz[1];
+    this.camera.position.z = xyz[2] + 20;
+    this.recenter(xyz);
+  }
+
+  // MODEL AND MAP DISPLAY
+  this.redrawMaps = function (force) {
+    // recalculate the mesh if the center of rotation has changed
+    var center = [ this.controls.target.x, this.controls.target.y,
+                   this.controls.target.z ];
+    if (force ||
+        ((center[0] != this.last_center[0]) ||
+         (center[1] != this.last_center[1]) ||
+         (center[2] != this.last_center[2]))) {
+      this.last_center = center;
+      for (var i = 0; i < this.maps.length; i++) {
+        this.maps[i].clear_mesh(true);
+        this.maps[i].update_mesh(global_parameters['map_radius']);
+        this.render_mesh(maps[i]);
+      }
+    }
+  }
+  
+  this.clear_mesh = function (map, reset_data) {
+    var i = map.meshes.length - 1;
+    while (i >= 0) {
+      if (map.meshes[i]) {
+        this.scene.remove(map.meshes[i]);
+        map.meshes.pop();
+      }
+      i--;
+    }
+    if (reset_data) {
+      map.display_data = null;
+    }
+  }
+  
+  this.clear_model_geom = function (model) {
+    if (model.geom_objects) {
+      for (var i = 0; i < model.geom_objects.length; i++) {
+        this.scene.remove(model.geom_objects[i]);
+      }
+    }
+    model.geom_objects = null;
+  }
+  
+  this.toggle_map_visibility = function (map, visible) {
+    map.parameters['visible'] = visible;
+    if (visible) {
+      map.update_mesh(this.global_parameters['map_radius']);
+      this.render_mesh(map);
+    } else {
+      map.clear_mesh();
+    }
+  }
+  
+  this.toggle_model_visibility = function (model, visible) {
+    model.parameters['visible'] = visible;
+    if (visible) {
+      model.update_geom();
+      this.render_model(model);
+    } else {
+      model.clear_geom();
+    }
+  }
+  
+  this.redraw_model = function (model) {
+    model.clear_geom();
+    model.update_geom();
+    this.render_model(model);
+  }
+  
+  this.render_mesh = function (map) {
+    for (var i = 0; i < map.meshes.length; i++) {
+      this.scene.add(map.meshes[i]);
+    }
+    this.render();
+  }
+  
+  this.render_model = function (model) {
+    if (model.geom_objects) {
+      for (var i = 0; i < model.geom_objects.length; i++) {
+        this.scene.add(model.geom_objects[i]);
+      }
+    }
+    this.render();
+  }
+
+  this.initialize_map_object = function (mapdata, map_name, diff_map_flag,
+      anom_map_flag) {
+    return initialize_map_object(this, mapdata, map_name, diff_map_flag,
+      anom_map_flag);
+  }
+  
+  this.initialize_model_object = function (model, model_name) {
+    return initialize_model_object(this, model, model_name);
+  }
+
+  // I/O FUNCTIONS (IMPLEMENTATIONS BELOW)
+  this.fetchPDB = function (pdb_id) {
+    return fetchPDB(this, pdb_id);
+  }
+  this.load_pdb = function (url, model_name) {
+    return load_pdb(this, url, model_name);
+  }
+  this.load_mon_lib = function (url, model_id) {
+    return load_mon_lib(this, url, model_id);
+  }
+  this.load_mmcif = function (url, model_name) {
+    return load_mmcif(this, url, model_name);
+  }
+  this.load_cif = function (url, model_name) {
+    return load_cif(this, url, model_name);
+  }
+  this.load_ccp4_map = function (url, map_name, diff_map_flag) {
+    return load_ccp4_map(this, url, map_name, diff_map_flag);
+  }
+
 }
 
-function initialize_map_object (mapdata, map_name, diff_map_flag,
+//**********************************************************************
+// EVENTS
+function OnWindowResize (viewer) {
+  SCREEN_WIDTH = window.innerWidth;
+  SCREEN_HEIGHT = window.innerHeight;
+  viewer.camera.aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
+  viewer.camera.updateProjectionMatrix();
+  viewer.renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
+  //composer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
+}
+
+function OnChange (viewer) {
+  var cx = viewer.camera.position.x,
+      cy = viewer.camera.position.y,
+      cz = viewer.camera.position.z;
+  var ox = viewer.controls.target.x,
+      oy = viewer.controls.target.y,
+      oz = viewer.controls.target.z;
+  var dxyz = Math.sqrt(Math.pow(cx-ox, 2) + Math.pow(cy-oy, 2) + Math.pow(cz-oz, 2));
+  viewer.scene.fog.near = 2; //dxyz / 2;
+  viewer.scene.fog.far = Math.min(dxyz * 1.2, dxyz+10);
+  viewer.camera.near = dxyz * 0.8;
+  viewer.camera.far = dxyz * 2;
+  viewer.camera.updateProjectionMatrix();
+  viewer.redrawAxes();
+  //redrawMaps();
+}
+
+function OnChange2 () {
+  console.log("OnChange2");
+}
+
+function OnEnd (viewer) {
+  viewer.redrawAxes();
+  viewer.redrawMaps();
+}
+
+function animate (viewer) {
+  viewer.render();
+  viewer.update();
+  requestAnimationFrame( viewer.animate );
+}
+
+function initialize_map_object (viewer, mapdata, map_name, diff_map_flag,
     anom_map_flag) {
   var map = new xtal.ccp4_map(mapdata);
   if (! diff_map_flag) {
@@ -153,89 +328,64 @@ function initialize_map_object (mapdata, map_name, diff_map_flag,
   var map_display = new mapDisplayObject(map, map_name, diff_map_flag,
     anom_map_flag);
   map_display.clear_mesh = function () {
-    clear_mesh(map_display);
+    viewer.clear_mesh(map_display);
   }
-  setup_map_dat_gui(map_display);
-  maps.push(map_display);
+  if (viewer.gui) {
+    setup_map_dat_gui(viewer, map_display);
+  }
+  viewer.maps.push(map_display);
   //var uc = new UnitCellBox(map.unit_cell);
   //scene.add(uc);
-  map_display.update_mesh(global_parameters['map_radius']);
-  render_mesh(map_display);
+  map_display.update_mesh(viewer.global_parameters['map_radius']);
+  viewer.render_mesh(map_display);
 }
 
-function initialize_model_object (model, model_name) {
+function initialize_model_object (viewer, model, model_name) {
   var model_display = new modelDisplayObject(model, model_name);
   model_display.clear_geom = function() {
-    clear_model_geom(model_display);
+    viewer.clear_model_geom(model_display);
   }
-  setup_model_dat_gui(model_display);
-  models.push(model_display);
-  redraw_model(model_display);
-  if (global_parameters['auto_zoom']) {
+  if (viewer.gui) {
+    setup_model_dat_gui(viewer, model_display);
+  }
+  viewer.models.push(model_display);
+  viewer.redraw_model(model_display);
+  if (viewer.global_parameters['auto_zoom']) {
     center_and_size = model.get_center_and_size();
-    recenter(center_and_size[0]);
+    viewer.recenter(center_and_size[0]);
   }
   //feature_list = model.extract_interesting_residues();
   //loadFeatures(feature_list);
 }
 
-function readPDBfile (evt) {
-  var file = evt.target.files[0];
-  if (file) {
-    console.log("Reading file " + file.name);
-    var fr = new FileReader();
-    fr.onloadend = function() {
-      var contents = this.result;
-      var model = new xtal.model.Model();
-      model.from_pdb(contents);
-      initialize_model_object(model, file.name);
-    };
-    fr.readAsText(file);
-  } else {
-    console.log("No file!");
-  }
+
+//**********************************************************************
+// DAT GUI functions
+function create_gui (viewer) {
+  viewer.gui = new dat.GUI();
+  var mapRadius = viewer.gui.add( viewer.global_parameters,
+    'map_radius' ).min(5).max(20).step(1).name('Map radius').listen();
+  mapRadius.onChange(function (value){
+    redrawMaps(true);
+  });
+  viewer.gui.open();
 }
 
-function redrawAxes () {
-  if (axes) {
-    scene.remove(axes);
-  }
-  var center = controls.target;
-  axes = new Axis(0.5, [ center.x, center.y,  center.z ], false );
-  scene.add(axes);
-}
-
-function redrawMaps (force) {
-  // recalculate the mesh if the center of rotation has changed
-  var center = [ controls.target.x, controls.target.y, controls.target.z ];
-  if (force ||
-      ((center[0] != last_center[0]) ||
-       (center[1] != last_center[1]) ||
-       (center[2] != last_center[2]))) {
-    last_center = center;
-    for (var i = 0; i < maps.length; i++) {
-      maps[i].clear_mesh(true);
-      maps[i].update_mesh(global_parameters['map_radius']);
-      render_mesh(maps[i]);
-    }
-  }
-}
-
-function setup_map_dat_gui (map) {
+function setup_map_dat_gui (viewer, map) {
   // GUI
-  var map_gui = gui.addFolder("Map: " + map.name);
-  gui_folders.push(map_gui);
+  var map_gui = viewer.gui.addFolder("Map: " + map.name);
+  viewer.gui_folders.push(map_gui);
   var isVisible = map_gui.add(map.parameters,
     'visible').name("Display").listen();
   isVisible.onChange(function (value){
-    toggle_map_visibility(map, value);
+    viewer.toggle_map_visibility(map, value);
   });
   var isoLevel = map_gui.add(map.parameters,
     'isolevel').min(0).max(8).step(0.1).name('Contour level').listen();
   isoLevel.onChange(function (value){
     map.clear_mesh();
-    map.update_isolevel(value, global_parameters['map_radius']);
-    render_mesh(map);
+    map.update_isolevel(value, viewer.global_parameters['map_radius']);
+    viewer.render_mesh(map);
   });
   if (map.flag_difference_map) {
     var mapColorPos = map_gui.addColor(
@@ -258,222 +408,108 @@ function setup_map_dat_gui (map) {
   map_gui.open();
 }
 
-function setup_model_dat_gui (model) {
-  var model_gui = gui.addFolder("Model: " +model.name);
-  gui_folders.push(model_gui);
+function setup_model_dat_gui (viewer, model) {
+  var model_gui = viewer.gui.addFolder("Model: " +model.name);
+  viewer.gui_folders.push(model_gui);
   var isVisible = model_gui.add(model.parameters,
     'visible').name("Display").listen();
   isVisible.onChange(function (value){
-    toggle_model_visibility(model, value);
+    viewer.toggle_model_visibility(model, value);
   });
   var repType = model_gui.add(model.parameters, "render_style",
     ["lines", "trace", "trace+ligands"]).name("Draw as").listen();
   repType.onChange(function(value) {
-    redraw_model(model);
+    viewer.redraw_model(model);
   });
   var colorType = model_gui.add(model.parameters, 'color_scheme',
     ["element", "rainbow", "bfactor"]).name("Color scheme").listen();
   colorType.onChange(function(value) {
-    redraw_model(model);
+    viewer.redraw_model(model);
   });
   var carbColor = model_gui.addColor(
     model.parameters, 'carbon_color' ).name('C atom color').listen();
   carbColor.onChange(function(value){
     if (model.color_scheme == "element") {
-      redraw_model(model);
+      viewer.redraw_model(model);
     }
   });
   model_gui.open();
 }
 
-function clear_mesh (map, reset_data) {
-  var i = map.meshes.length - 1;
-  while (i >= 0) {
-    if (map.meshes[i]) {
-      scene.remove(map.meshes[i]);
-      map.meshes.pop();
-    }
-    i--;
-  }
-  if (reset_data) {
-    map.display_data = null;
-  }
-}
-
-function clear_model_geom (model) {
-  if (model.geom_objects) {
-    for (var i = 0; i < model.geom_objects.length; i++) {
-      scene.remove(model.geom_objects[i]);
-    }
-  }
-  model.geom_objects = null;
-}
-
-function toggle_map_visibility (map, visible) {
-  map.parameters['visible'] = visible;
-  if (visible) {
-    map.update_mesh(global_parameters['map_radius']);
-    render_mesh(map);
-  } else {
-    map.clear_mesh();
-  }
-}
-
-function toggle_model_visibility (model, visible) {
-  model.parameters['visible'] = visible;
-  if (visible) {
-    model.update_geom();
-    render_model(model);
-  } else {
-    model.clear_geom();
-  }
-}
-
-function redraw_model (model) {
-  model.clear_geom();
-  model.update_geom();
-  render_model(model);
-}
-
-function render_mesh (map) {
-  for (var i = 0; i < map.meshes.length; i++) {
-    scene.add(map.meshes[i]);
-  }
-  render();
-}
-
-function render_model (model) {
-  if (model.geom_objects) {
-    for (var i = 0; i < model.geom_objects.length; i++) {
-      scene.add(model.geom_objects[i]);
-    }
-  }
-  render();
-}
-
-// EVENTS
-function onWindowResize( event ) {
-  SCREEN_WIDTH = window.innerWidth;
-  SCREEN_HEIGHT = window.innerHeight;
-  camera.aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
-  camera.updateProjectionMatrix();
-  renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
-  //composer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
-}
-
-function OnChange () {
-  var cx = camera.position.x, cy = camera.position.y, cz = camera.position.z;
-  var ox = controls.target.x, oy = controls.target.y, oz = controls.target.z;
-  var dxyz = Math.sqrt(Math.pow(cx-ox, 2) + Math.pow(cy-oy, 2) + Math.pow(cz-oz, 2));
-  scene.fog.near = 2; //dxyz / 2;
-  scene.fog.far = Math.min(dxyz * 1.2, dxyz+10);
-  camera.near = dxyz * 0.8;
-  camera.far = dxyz * 2;
-  camera.updateProjectionMatrix();
-  redrawAxes();
-  //redrawMaps();
-}
-
-function OnEnd () {
-  redrawAxes();
-  redrawMaps();
-}
-
-function recenter (xyz) {
-  controls.target.x = xyz[0];
-  controls.target.y = xyz[1];
-  controls.target.z = xyz[2];
-  camera.lookAt(xyz);
-  controls.update();
-  redrawMaps();
-  render();
-}
-
-function zoomXYZ (evt) {
-  var data = $(this).data("Data");
-  camera.position.x = data.xyz[0];
-  camera.position.y = data.xyz[1];
-  camera.position.z = data.xyz[2] + 20;
-  recenter(data.xyz);
-}
-
-//----------------------------------------------------------------------
-// JQUERY GUI STUFF
-
-function expandPanel() {
-  $('#loadControls').fadeIn('fast');
-  $('#loadControlsButton').click(collapsePanel);
-  $('#loadControlsShow').text("Hide controls");
-};
-
-function collapsePanel() {
-//  $('#loadControlsHandle').toggle(true);
-  $('#loadControls').fadeOut('fast');
-  $('#loadControlsButton').unbind('click');
-  $('#loadControlsButton').click(expandPanel);
-  $('#loadControlsShow').text("Load structure...");
-};
-
-function expandFeatures() {
-  //$("#featureHeader").toggle(false);
-  $("#featureList").slideDown('fast');
-  $('#featureHandle').click(collapseFeatures);
-};
-
-function collapseFeatures() {
-  //$("#featureHeader").toggle(true);
-  $("#featureList").slideUp('fast');
-};
-
-function init_gui () {
-  $(document).ready(function() {
-    /* expandPanel on click, too - good for mobile devices without mouse */
-    $('#loadControlsButton').click(expandPanel);
-    $('#featureHandle').click(expandFeatures);
-    $('#featureHandle').hoverIntent({
-      over: expandFeatures,
-      timeout: 10,
-      out: function() {return true;}
-    });
-    $('#featureList').hoverIntent({
-      over: function() { return true;},
-      timeout: 10,
-      out: collapseFeatures
-    });
+//**********************************************************************
+// I/O FUNCTIONS
+//
+function load_mon_lib (viewer, url, model_id) {
+  var reader = new xtal.cif.Reader();
+  reader.load(url, function(cif_model) {
+    var comp_list = cif_model.get_block('comp_list');
+    console.log(cif_model);
+    var first_block = comp_list.get('_chem_comp.id')[0];
+    var first_block = cif_model.get_block('comp_' + first_block);
+    console.log(first_block);
+    var model = new xtal.model.Model();
+    model.from_monlib(first_block);
+    viewer.initialize_model_object(model, model_id);
   });
 }
 
-function loadFeatures (features) {
-  $("#featureList").empty();
-  console.log("Adding " + features.length + " features");
-  expandFeatures();
-  for (var i = 0; i < features.length; i++) {
-    var inner = $("<div/>", {
-      id:"feature"+i,
-      class:"featureItem"}).text(features[i][0]);
-    var outer = $("<div/>", {
-        id:"featuresMargin",
-        class:"controlMargin" }).text('');
-    outer.append(inner);
-    outer.appendTo("#featureList");
-    inner.data("Data",{
-        label: features[i][0],
-        xyz: features[i][1]
-      });
-    inner.click(zoomXYZ);
-  }
-  //$("featureList").html();
-  list_height = 0
-  list_height = $("#featuresBoxInner").height();
-  //$("#featuresBoxInner").children().each(function () {
-  //  list_height += $(this).height();
-  //});
-  console.log("height: " + list_height);
-  //$("#featureBox").height(Math.min(200, list_height));
+// Load mmCIF
+function load_mmcif (viewer, url, model_name) {
+  var reader = new xtal.cif.Reader();
+  reader.load(url, function(mmcif_model) {
+    var model = new xtal.model.Model();
+    model.from_mmcif(mmcif_model.first_block());
+    viewer.initialize_model_object(model, model_name);
+  });
 }
 
-function loadFromPDB (evt) {
-  var pdb_id = $("#pdbIdInput").val();
+// Load small molecule CIF
+function load_cif(viewer, url, model_name) {
+  var reader = new xtal.cif.Reader();
+  console.log(url);
+  reader.load(url, function(cif_model) {
+    var model = new xtal.model.Model();
+    model.from_cif(cif_model.first_block());
+    viewer.initialize_model_object(model, model_name);
+  });
+}
+
+function load_pdb (viewer, url, model_name) {
+  var req = new XMLHttpRequest();
+  req.open('GET', url, true);
+  req.onreadystatechange = function (aEvt) {
+    if (req.readyState == 4) {
+      if(req.status == 200) {
+        var model = new xtal.model.Model();
+        model.from_pdb(req.responseText);
+        viewer.initialize_model_object(model, model_name);
+      } else {
+        console.log("Error fetching " + url);
+      }
+    }
+  };
+  req.send(null);
+}
+
+function load_ccp4_map (viewer, url, map_name, diff_map_flag) {
+  var req = new XMLHttpRequest();
+  req.responseType = "arraybuffer";
+  console.log(url);
+  req.open('GET', url, true);
+  req.onreadystatechange = function (aEvt) {
+    if (req.readyState == 4) {
+      if(req.status == 200) {
+        var map_data = new Int32Array(req.response);
+        viewer.initialize_map_object(map_data, map_name, diff_map_flag);
+      } else {
+        console.log("Error fetching " + url);
+      }
+    }
+  };
+  req.send(null);
+}
+
+function validate_pdb_id (pdb_id) {
   console.log("PDB ID: " + pdb_id);
   if (pdb_id.length != 4) {
     $("The string '" + pdb_id + "' is not a valid PDB ID.").dialog({
@@ -485,65 +521,20 @@ function loadFromPDB (evt) {
       }
     });
   }
+}
+
+function fetchPDB (viewer, pdb_id) {
   var req = new XMLHttpRequest();
-  req.open('GET', 'http://www.rcsb.org/pdb/files/' + pdb_id + ".pdb", true);
-  req.onreadystatechange = function (aEvt) {
-    if (req.readyState == 4) {
-      if(req.status == 200) {
-        var model = new xtal.model.Model();
-        model.from_pdb(req.responseText);
-        initialize_model_object(model, pdb_id);
-      } else {
-        console.log("Error fetching " + pdb_id);
-      }
-    }
-  };
-  req.send(null);
+  url = 'http://www.rcsb.org/pdb/files/' + pdb_id + ".pdb"
+  load_pdb(viewer, url, pdb_id);
 }
 
-function requestFromServer (evt) {
-  collapsePanel();
-  reset_viewer();
-  var pdb_id = $("#pdbIdInput").val();
-  requestPDB(pdb_id);
-}
-
-function requestModel(model_id) {
-	var reader = new xtal.cif.Reader();
-  reader.load('phenix/' + model_id, function(cif_model) {
-    var model = new xtal.model.Model();
-    model.from_mmcif(cif_model.first_block());
-    initialize_model_object(model, model_id);
-  });
-}
-
-function requestmonlib(model_id) {
-	var reader = new xtal.cif.Reader();
-  reader.load('phenix/' + model_id, function(cif_model) {
-		var comp_list = cif_model.get_block('comp_list');
-		console.log(cif_model);
-		var first_block = comp_list.get('_chem_comp.id')[0];
-		var first_block = cif_model.get_block('comp_' + first_block);
-		console.log(first_block);
-    var model = new xtal.model.Model();
-    model.from_monlib(first_block);
-    initialize_model_object(model, model_id);
-  });
-}
-
-function requestPDB (pdb_id) {
-  if (pdb_id.length != 4) {
-    $("The string '" + pdb_id + "' is not a valid PDB ID.").dialog({
-      modal: true,
-      buttons: {
-        Ok: function() {
-          $( this ).dialog( "close" );
-        }
-      }
-    });
-  }
+//----------------------------------------------------------------------
+// ADVANCED FUNCTIONS
+function requestPDB (viewer, pdb_id) {
+  validate_pdb_id(pdb_id);
   var req1 = new XMLHttpRequest();
-  req1.open('GET', 'phenix/' + pdb_id + '.json');
+  req1.open('GET', '/' + pdb_id + '.json');
   req1.onreadystatechange = function (aEvt) {
     if (req1.readyState == 4) {
       console.log("RESPONSE");
@@ -553,67 +544,22 @@ function requestPDB (pdb_id) {
       }
       // Load PDB or mmCIF format file.
       if (response.pdb_mmcif) {
-        load_mmcif(response.pdb_mmcif, pdb_id);                
+        viewer.load_mmcif(response.pdb_mmcif, pdb_id);
       } else if (response.pdb_file) {
-        loadPDBFromServer(response.pdb_file, pdb_id);        
+        viewer.loadPDBFromServer(response.pdb_file, pdb_id);
       }
-      
+
       if (response.features) {
-        loadFeatures(response.features);
+        display_features_gui(response.features);
       }
       if (response.two_fofc_map) {
         loadMapFromServer(response.two_fofc_map, "2mFo-Dfc", false);
       }
       if (response.fofc_map) {
         loadMapFromServer(response.fofc_map, "mFo-Dfc", true);
-      } 
+      }
     }
   };
   req1.send(null);
   return;
-}
-
-// Load mmCIF
-function load_mmcif(pdb_mmcif, model_name) {
-  var reader = new xtal.cif.Reader();
-  reader.load('phenix/' + pdb_mmcif, function(mmcif_model) {
-    var model = new xtal.model.Model();
-    model.from_mmcif(mmcif_model.first_block());
-    initialize_model_object(model, model_name);
-  });
-}
-
-function loadPDBFromServer (pdb_file, model_name) {
-  var req = new XMLHttpRequest();
-  req.open('GET', "phenix/" + pdb_file, true);
-  req.onreadystatechange = function (aEvt) {
-    if (req.readyState == 4) {
-      if(req.status == 200) {
-        var model = new xtal.model.Model();
-        model.from_pdb(req.responseText);
-        initialize_model_object(model, model_name);
-      } else {
-        console.log("Error fetching " + pdb_file);
-      }
-    }
-  };
-  req.send(null);
-}
-
-function loadMapFromServer (map_file, map_name, diff_map_flag) {
-  var req = new XMLHttpRequest();
-  req.responseType = "arraybuffer";
-  console.log(map_file);
-  req.open('GET', "phenix/" + map_file, true);
-  req.onreadystatechange = function (aEvt) {
-    if (req.readyState == 4) {
-      if(req.status == 200) {
-        var map_data = new Int32Array(req.response);
-        initialize_map_object(map_data, map_name, diff_map_flag);
-      } else {
-        console.log("Error fetching " + map_file);
-      }
-    }
-  };
-  req.send(null);
 }

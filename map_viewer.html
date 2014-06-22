@@ -7,16 +7,16 @@
   <link rel="stylesheet" type="text/css" href="viewer.css">
 
 	<!-- third-party dependencies -->
-	<script src="js/jquery-2.1.0.min.js"></script>
-	<script src="js/jquery-ui-1.10.4.min.js"></script>
+	<script src="js/dependencies/jquery-2.1.0.min.js"></script>
+	<script src="js/dependencies/jquery-ui-1.10.4.min.js"></script>
 
-	<script src="js/three.min.js"></script>
-	<script src="js/three.TrackballControls.js"></script>
+	<script src="js/dependencies/Detector.js"></script>
+	<script src="js/dependencies/three.min.js"></script>
+	<script src="js/dependencies/three.TrackballControls.js"></script>
 
-	<script src="js/Detector.js"></script>
-	<script src="js/DAT.GUI.min.js"></script>
-	<script src="js/hoverIntent.min.js"></script>
-	<script src="js/sprintf.js"></script>
+	<script src="js/dependencies/DAT.GUI.min.js"></script>
+	<script src="js/dependencies/hoverIntent.min.js"></script>
+	<script src="js/dependencies/sprintf.js"></script>
 
 	<!-- app-specific code -->
 	<script src="js/xtal.js"></script>
@@ -25,10 +25,11 @@
 	<script src="js/xtal.cif.js"></script>
 	<script src="js/xtal.marchingcubes.js"></script>
 	<script src="js/xtal.viewer.js"></script>
+	<script src="js/xtal.viewer_gui.js"></script>
 
 </head>
 <body>
-	<div id="ThreeJS" style="position: absolute; left:0px; top:0px;"></div>
+	<div id="Viewer" style="position: absolute; left:0px; top:0px;"></div>
 
 	<div class="controlBox" id="featureBox">
 	  <div id="featuresBoxInner">
@@ -55,28 +56,11 @@
 	</div>
 
 	<script>
+		init_gui();
 		$(function() {
-			init_gui();
-			init_3d();
-			animate();
-			function getQuery(variable) {
-			  var query = window.location.search.substring(1);
-			  var vars = query.split("&");
-			  for (var i=0;i<vars.length;i++) {
-			    var pair = vars[i].split("=");
-					if (pair[0] == 'model') {
-						requestModel(pair[1]);
-						return true
-					}
-					if (pair[0] == 'monlib') {
-						requestmonlib(pair[1]);
-						return true
-					}
-			  }
-			  return false;
-			}
-		
-			if (!getQuery()) {
+      XV = new XtalViewer("Viewer", null, true, true);
+			XV.animate();
+			if (!getQuery(XV)) {
 			  expandPanel();
 			}
 		});

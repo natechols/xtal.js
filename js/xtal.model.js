@@ -11,6 +11,7 @@ Exports:
 var xtal = (function(module) {return module})(xtal||{});
 xtal.model = (function(module) {
 
+var eight_pi_squared = 8 * 3.14159 * 3.14159; // B = 8 * pi^2 * u^2
 var max_bond_length = 1.99;
 var max_bond_length_SP = 2.2;
 var elements = [
@@ -43,7 +44,9 @@ function Model (pdb_string) {
   this.space_group = null;
   this.has_hydrogens = false;
   this.ligand_flags = null;
-  
+  this.connectivity = null;
+  this.atom_lookup = null;
+
   // Initialize from mmCIF model
   this.from_mmcif = function(cif_block) {
     var chain_index = 0;
@@ -65,6 +68,54 @@ function Model (pdb_string) {
     if (this.atoms.length == 0) {
       throw Error("No atom records found.")
     }
+    // attempt to extract unit cell information
+    var uc_ = [
+        cif_block.get("_cell.length_a"),
+        cif_block.get("_cell.length_b"),
+        cif_block.get("_cell.length_c"),
+        cif_block.get("_cell.angle_alpha"),
+        cif_block.get("_cell.angle_beta"),
+        cif_block.get("_cell.angle_gamma")
+    ];
+    this.process_unit_cell_params(uc_);
+    this.space_group = cif_block.get('_symmetry.space_group_name_H-M');
+    this.connectivity = get_connectivity_fast(this.atoms);
+  }
+
+  // Initialize from small molecule CIF - *not* the same as mmCIF!
+  this.from_cif = function(cif_block) {
+    var uc_ = [
+      cif_block.get("_cell_length_a"),
+      cif_block.get("_cell_length_b"),
+      cif_block.get("_cell_length_c"),
+      cif_block.get("_cell_angle_alpha"),
+      cif_block.get("_cell_angle_beta"),
+      cif_block.get("_cell_angle_gamma"),
+    ];
+    if (! this.process_unit_cell_params(uc_)) {
+      throw Error("Can't extract unit cell - required for small molecules.");
+    }
+    this.space_group = cif_block.get('_symmetry_space_group_name_H-M');
+    var labels = cif_block.get('_atom_site_label');
+    var elements = cif_block.get('_atom_site_type_symbol');
+    var frac_x = cif_block.get('_atom_site_fract_x');
+    var frac_y = cif_block.get('_atom_site_fract_y');
+    var frac_z = cif_block.get('_atom_site_fract_z');
+    var u_iso = cif_block.get('_atom_site_U_iso_or_equiv');
+    var occ = cif_block.get('_atom_site_occupancy');
+    for (var i = 0; i < labels.length; i++) {
+      var atom = new Atom();
+      atom.name = labels[i];
+      atom.element = elements[i];
+      atom.b = u_iso[i] * u_iso[i] * eight_pi_squared;
+      atom.occ = occ[i];
+      atom.xyz = this.unit_cell.orthogonalize((frac_x[i],frac_y[i],frac_z[i]));
+      this.atoms.push(atom);
+    }
+    if (this.atoms.length == 0) {
+      throw Error("No atom records found.")
+    }
+    // TODO use built-in bonding - is this always available?
     this.connectivity = get_connectivity_fast(this.atoms);
   }
 	
@@ -90,6 +141,7 @@ function Model (pdb_string) {
       throw Error("No atom records found.")
     }
     this.connectivity = get_connectivity_fast(this.atoms);
+    this.atom_lookup = build_atom_name_dict(this.atoms);
   }
 
   // Initialize from PDB string
@@ -135,7 +187,25 @@ function Model (pdb_string) {
     //this.connectivity = get_connectivity_simple(this.atoms);
     this.connectivity = get_connectivity_fast(this.atoms);
   }
-  
+
+  // create a unit cell object from parameters
+  this.process_unit_cell_params = function (uc_) {
+    var uc = [];
+    for (var i = 0; i < 6; i++) {
+      if (! uc_[i]) {
+        break;
+      } else {
+        // values are assumed to be strictly numeric by this point
+        uc.push(parseInt(uc_[i]));
+      }
+    }
+    if (uc.length == 6) {
+      this.unit_cell = new xtal.UnitCell(uc[0],uc[1],uc[2],uc[3],uc[4],uc[5]);
+      return true;
+    }
+    return false;
+  } 
+ 
   this.extract_trace = function () {
     return extract_trace(this);
   }
@@ -191,19 +261,6 @@ function Model (pdb_string) {
   }
 }
 
-// 13 - 16  Atom          name          Atom name.
-// 17       Character     altLoc        Alternate location indicator.
-// 31 - 38  Real(8.3)     x             Orthogonal coordinates for X in
-//                                      Angstroms.
-// 39 - 46  Real(8.3)     y             Orthogonal coordinates for Y in
-//                                      Angstroms.
-// 47 - 54  Real(8.3)     z             Orthogonal coordinates for Z in
-//                                      Angstroms.
-// 55 - 60  Real(6.2)     occupancy     Occupancy.
-// 61 - 66  Real(6.2)     tempFactor    Temperature factor.
-// 73 - 76  LString(4)    segID         Segment identifier, left-justified.
-// 77 - 78  LString(2)    element       Element symbol, right-justified.
-// 79 - 80  LString(2)    charge        Charge on the atom.
 function Atom (pdb_line) {
   this.hetero = false;
   this.name = "";
@@ -224,6 +281,7 @@ function Atom (pdb_line) {
     }
     this.name = m['label_atom_id'];
     this.altloc = m['label_alt_id'];
+    if (this.altloc == '.') this.altloc = "";
     this.resname = m['label_comp_id'];
     this.chain = m['label_asym_id'];
     this.resseq = m['label_entity_id'];
@@ -248,6 +306,19 @@ function Atom (pdb_line) {
 	}
 	
   // From PDB Line.
+  // 13 - 16  Atom          name          Atom name.
+  // 17       Character     altLoc        Alternate location indicator.
+  // 31 - 38  Real(8.3)     x             Orthogonal coordinates for X in
+  //                                      Angstroms.
+  // 39 - 46  Real(8.3)     y             Orthogonal coordinates for Y in
+  //                                      Angstroms.
+  // 47 - 54  Real(8.3)     z             Orthogonal coordinates for Z in
+  //                                      Angstroms.
+  // 55 - 60  Real(6.2)     occupancy     Occupancy.
+  // 61 - 66  Real(6.2)     tempFactor    Temperature factor.
+  // 73 - 76  LString(4)    segID         Segment identifier, left-justified.
+  // 77 - 78  LString(2)    element       Element symbol, right-justified.
+  // 79 - 80  LString(2)    charge        Charge on the atom.
   this.from_pdb_line = function(pdb_line) {
     if (pdb_line.length < 66) {
       throw Error("ATOM or HETATM record is too short: " + pdb_line);
@@ -258,7 +329,7 @@ function Atom (pdb_line) {
     } else if (rec_type != "ATOM  ") {
       throw Error("Wrong record type: " + rec_type);
     }
-    this.name = pdb_line.substring(12,16);
+    this.name = pdb_line.substring(12,16).trim();
     this.altloc = pdb_line.substring(16, 17).trim();
     this.resname = pdb_line.substring(17, 20).trim();
     this.chain = pdb_line.substring(20, 22).trim();
@@ -452,6 +523,18 @@ function get_connectivity_fast (atoms) {
   return connectivity;
 }
 
+function build_atom_name_dict (atoms) {
+  var dict = [];
+  for (var i = 0; i < atoms.length; i++) {
+    var name = atoms[i].name;
+    if (dict[name]) {
+      throw Error("Duplicate atom " + name);
+    }
+    dict[name] = i;
+  }
+  return dict;
+}
+
 function extract_trace (model) {
   var segments = [];
   var current_segment = [];
@@ -462,11 +545,11 @@ function extract_trace (model) {
     var chain_index = model.chain_indices[i];
     var start_new = false;
     if ((atom.altloc != "") && (atom.altloc != "A")) continue;
-    if ((atom.name == " CA ") || (atom.name == " P  ")) {
+    if ((atom.name == "CA" && atom.element == "C") || (atom.name == "P")) {
       if ((last_atom_index != null) && (last_chain_index == chain_index)) {
         var dxyz = atom.distance(model.atoms[last_atom_index]);
-        if (((atom.name == " CA ") && (dxyz <= 5.5)) ||
-            ((atom.name == " P  ") && (dxyz < 7.5))) {
+        if (((atom.name == "CA") && (dxyz <= 5.5)) ||
+            ((atom.name == "P") && (dxyz < 7.5))) {
           current_segment.push(atom);
           last_chain_index = chain_index;
           last_atom_index = i;

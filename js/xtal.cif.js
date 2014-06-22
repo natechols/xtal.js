@@ -180,8 +180,12 @@ xtal.cif = (function(module) {
   	// Process the lines in the input data.
 		this.gen.add(input);
 		var line = this.gen.next();
+    console.log(line);
 		while (line != null) {
-			this.step = this.step(line);
+      if (line[0] != '#') {
+        console.log(line);
+			  this.step = this.step(line);
+      }
 			line = this.gen.next();
 		}
   }
