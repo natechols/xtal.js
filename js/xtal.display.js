@@ -74,7 +74,6 @@ function update_map_isolevel (map, isolevel, radius, center)
 {
   if (! map.parameters['visible']) return;
   if (! map.display_data) {
-    console.log("NEW DATA CENTERED AT " + center);
     map.display_data = map.data.points_and_values(center, radius);
   }
   var levels = [1];
@@ -120,9 +119,10 @@ function modelDisplayObject (model, name) {
     render_style: "lines",
     color_scheme: "element",
     carbon_color: "#ffff00",
-    hydrogens: false
+    hydrogens: (model.source == "monlib")
   };
   this.geom_objects = null; // display object (drawLines, etc.)
+  this.selected = null;
   this.update_geom = function () {
     if (this.parameters["render_style"] == "lines") {
       this.geom_objects = [
@@ -141,6 +141,18 @@ function modelDisplayObject (model, name) {
           true)
         // TODO spheres for ions
       ];
+    }
+  }
+  this.show_selection = function (atom_selection) {
+    this.selected = new Highlights(this.model, atom_selection);
+  }
+  this.show_selection_by_atom_names = function (atom_names) {
+    console.log(atom_names);
+    atom_selection = this.model.select_atom_names(atom_names);
+    if (atom_selection.length != 0) {
+      this.show_selection(atom_selection);
+    } else {
+      throw Error("No atoms selected for " + atom_names);
     }
   }
   this.update_colors = function() {
@@ -249,44 +261,10 @@ Bonds = function drawLines (model, color_style, carbon_color,
       if (! ligand_flags[i]) continue;
     }
     if (bonds.length == 0) { // nonbonded, draw star
-      var vectors = [
-        [-0.5, 0, 0], [0.5, 0, 0],
-        [0, -0.5, 0], [0, 0.5, 0],
-        [0, 0, -0.5], [0, 0, 0.5],
-      ];
-      for (var j = 0; j < 6; j += 2) {
-        var x1 = atom.xyz[0] + vectors[j][0];
-        var y1 = atom.xyz[1] + vectors[j][1];
-        var z1 = atom.xyz[2] + vectors[j][2];
-        var x2 = atom.xyz[0] + vectors[j+1][0];
-        var y2 = atom.xyz[1] + vectors[j+1][1];
-        var z2 = atom.xyz[2] + vectors[j+1][2];
-        geometry.vertices.push(
-          new THREE.Vector3(atom.xyz[0], atom.xyz[1], atom.xyz[2]),
-          new THREE.Vector3(x1, y1, z1),
-          new THREE.Vector3(atom.xyz[0], atom.xyz[1], atom.xyz[2]),
-          new THREE.Vector3(x2, y2, z2)
-        );
-        geometry.colors.push(color);
-        geometry.colors.push(color);
-        geometry.colors.push(color);
-        geometry.colors.push(color);
-      }
+      draw_isolated_atom(atom, geometry, color);
     } else { // bonded, draw lines
-      for (var j = 0; j < bonds.length; j++) {
-        var other = model.atoms[bonds[j]];
-        if ((! draw_hydrogens) && (other.element == "H")) {
-          continue;
-        } else if (ligands_only) {
-          if (! ligand_flags[bonds[j]]) continue;
-        }
-        var midpoint = atom.midpoint(other);
-        geometry.vertices.push(
-          new THREE.Vector3(atom.xyz[0], atom.xyz[1], atom.xyz[2]),
-          new THREE.Vector3(midpoint[0], midpoint[1], midpoint[2])
-        );
-        geometry.colors.push(color, color);
-      }
+      draw_bonded_atom(geometry, color, model, bonds, atom, draw_hydrogens,
+        ligands_only, ligand_flags);
     }
   }
   var material = new THREE.LineBasicMaterial({
@@ -296,6 +274,28 @@ Bonds = function drawLines (model, color_style, carbon_color,
   THREE.Line.call( this, geometry, material, THREE.LinePieces );
 };
 Bonds.prototype=Object.create(THREE.Line.prototype);
+
+// HIGHLIGHT SELECTED ATOMS
+Highlights = function drawHighlights (model, atom_selection) {
+  var geometry = new THREE.Geometry();
+  var color = new THREE.Color(0x80ffe0);
+  for (var j = 0; j < atom_selection.length; j++) {
+    var i = atom_selection[j]
+    var atom = model.atoms[i];
+    var bonds = model.connectivity[i];
+    if (bonds.length == 0) {
+      draw_isolated_atom(atom, geometry, color);
+    } else {
+      draw_bonded_atom(geometry, color, model, bonds, atom, true);
+    }
+  }
+  var material = new THREE.LineBasicMaterial({
+    vertexColors: THREE.VertexColors,
+    linewidth: 8
+  });
+  THREE.Line.call( this, geometry, material, THREE.LinePieces );
+};
+Highlights.prototype=Object.create(THREE.Line.prototype);
 
 // C-ALPHA / PHOSPHATE BACKBONE TRACE
 Trace = function drawTrace (model, color_style, carbon_color) {
@@ -338,6 +338,53 @@ Trace = function drawTrace (model, color_style, carbon_color) {
   THREE.Line.call( this, geometry, material, THREE.LinePieces );
 };
 Trace.prototype=Object.create(THREE.Line.prototype);
+
+// Draw a representation of an unbonded atom as a cross, similar to Coot and
+// PyMOL
+function draw_isolated_atom (atom, geometry, color) {
+  var vectors = [
+    [-0.5, 0, 0], [0.5, 0, 0],
+    [0, -0.5, 0], [0, 0.5, 0],
+    [0, 0, -0.5], [0, 0, 0.5],
+  ];
+  for (var j = 0; j < 6; j += 2) {
+    var x1 = atom.xyz[0] + vectors[j][0];
+    var y1 = atom.xyz[1] + vectors[j][1];
+    var z1 = atom.xyz[2] + vectors[j][2];
+    var x2 = atom.xyz[0] + vectors[j+1][0];
+    var y2 = atom.xyz[1] + vectors[j+1][1];
+    var z2 = atom.xyz[2] + vectors[j+1][2];
+    geometry.vertices.push(
+      new THREE.Vector3(atom.xyz[0], atom.xyz[1], atom.xyz[2]),
+      new THREE.Vector3(x1, y1, z1),
+      new THREE.Vector3(atom.xyz[0], atom.xyz[1], atom.xyz[2]),
+      new THREE.Vector3(x2, y2, z2)
+    );
+    geometry.colors.push(color);
+    geometry.colors.push(color);
+    geometry.colors.push(color);
+    geometry.colors.push(color);
+  }
+}
+
+// Draw bonds connecting an atom
+function draw_bonded_atom (geometry, color, model, bonds, atom, draw_hydrogens,
+    ligands_only, ligand_flags) {
+  for (var j = 0; j < bonds.length; j++) {
+    var other = model.atoms[bonds[j]];
+    if ((! draw_hydrogens) && (other.element == "H")) {
+      continue;
+    } else if (ligands_only) {
+      if (! ligand_flags[bonds[j]]) continue;
+    }
+    var midpoint = atom.midpoint(other);
+    geometry.vertices.push(
+      new THREE.Vector3(atom.xyz[0], atom.xyz[1], atom.xyz[2]),
+      new THREE.Vector3(midpoint[0], midpoint[1], midpoint[2])
+    );
+    geometry.colors.push(color, color);
+  }
+}
 
 //----------------------------------------------------------------------
 // MISC DISPLAY OBJECTS

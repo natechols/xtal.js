@@ -5,22 +5,62 @@
     <title>Demo</title>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
-    <script src="phenix.mmcif.js"></script>
-    <script src="elbow.js"></script>
-  <link rel="stylesheet" type="text/css" href="/css/interface.css">
+    <script src="js/dependencies/Detector.js"></script>
+    <script src="js/dependencies/three.min.js"></script>
+    <script src="js/dependencies/three.TrackballControls.js"></script>
+    <script src="js/xtal.js"></script>
+    <script src="js/xtal.cif.js"></script>
+    <script src="js/restraints_grid.js"></script>
+    <script src="js/xtal.viewer.js"></script>
+    <script src="js/xtal.model.js"></script>
+    <script src="js/xtal.display.js"></script>
   <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/overcast/jquery-ui.css">
+  <link rel="stylesheet" type="text/css" href="css/interface.css">
 
 </head>
 <body>
-  <h1>eLBOW restraints</h1>
+  <h1>GEOSTD restraints</h1>
 
-  <div id="elbow_grid" class="ui-tabs"></div>
+<div id="outer" style="width:100%; height:100%;">
+  <div id="grid_panel" class="left_panel">
+  <div id="restraints_grid" class="ui-tabs"></div>
+  </div>
+  <div id="viewer_panel" class="right_panel" style="height: 800px;">
+    <div id="Viewer" style="width:100%; height:100%;"/>
+  </div>
+</div>
 
     <script>
-      var reader = new phenix_mmcif_parser();
-      reader.load("data_AGS.cif", display_grid);
-      // XXX I'm confused - how do I access the data object?
-      //display_grid(reader.data);
+    var XV;
+    function load_geostd_cif (cif_data) {
+      display_grid(cif_data, show_atoms);
+      var comp_list = cif_data.get_block('comp_list');
+      var chem_id = comp_list.get('_chem_comp.id')[0];
+      var first_block = cif_data.get_block('comp_' + chem_id);
+      console.log(first_block);
+      var model = new xtal.model.Model();
+      model.from_monlib(first_block);
+      XV.initialize_model_object(model, chem_id);
+    }
+    function show_atoms (atom_list) {
+      console.log(atom_list);
+      for (var i = 0; i < XV.models.length; i++) {
+        model_display = XV.models[i];
+        XV.clear_model_selection(model_display);
+        model_display.show_selection_by_atom_names(atom_list);
+        if (model_display.selected) {
+          console.log("ATOMS SELECTED");
+          XV.scene.add(model_display.selected);
+          XV.render();
+        }
+      }
+    }
+    $(document).ready(function() {
+      XV = new XtalViewer("Viewer", $("#viewer_panel"), false, false);
+      XV.animate();
+      var reader = new xtal.cif.Reader();
+      reader.load("data/data_ADP.cif", load_geostd_cif);
+    });
     </script>
 </body>
 </html>

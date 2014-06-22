@@ -7,7 +7,7 @@ body {
 
 select {
   font-family: Futura, Verdana, Arial, Helvetica, sans-serif;
-  font-size: 10pt;
+  font-size: 12pt;
 }
 
 h2 {
@@ -25,11 +25,53 @@ h4 {
   font-size: 14pt;
 }
 
+h5 {
+  text-align: left;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+a.app_name {
+  text-decoration: none;
+  color: black;
+}
+
 div.content {
   width: 920px;
   display: block;
   margin-left: auto;
   margin-right: auto;
+}
+
+div.top_labels {
+  padding: 8px;
+}
+
+div.left_panel {
+  /*width = 640px;*/
+  width: 48%;
+  height: 100%;
+  display: inline-block;
+  /*position: absolute;
+  top = 0px;
+  left = 0px;*/
+  float: left;
+}
+
+div#grid_panel {
+  border: 1px solid #606060;
+  height: 800px;
+  overflow: auto;
+}
+
+div.right_panel {
+  width: 50%;
+  height: 100%;
+  display: inline-block;
+  float: right;
+  /*position: absolute;
+  top = 0px;
+  right = 0px;*/
 }
 
 div.controls {
@@ -71,6 +113,48 @@ div.loggraph-display {
   text-align: center;
 }
 
+table.data_display {
+  border = 1px;
+  border-spacing: 1;
+  border-collapse: collapse;
+  background-color: #a0a0c0;
+  width: 800px;
+  margin-left: 60px;
+  margin-right: 60px;
+  text-align: center;
+}
+
+table.data_display_narrow {
+  border = 1px;
+  border-spacing: 1;
+  border-collapse: collapse;
+  background-color: #a0a0c0;
+  width: 96%;
+  margin-left: 2%;
+  margin-right: 2%;
+  text-align: center;
+}
+
+tr.header {
+  font-weight: bold;
+  background-color: #c0c0e0;
+}
+
+tr.content {
+  font-family: Courier, monospace;
+  background-color: #e0e0ff;
+}
+
+tr.selected {
+  font-family: Courier, monospace;
+  background-color: #ffe0ff;
+}
+
+td.data_cell {
+  padding = 4px;
+  border: 1px solid #a0a0c0;
+}
+
 /* D3 stuff */
 .axis path,
 .axis line {
@@ -91,4 +175,130 @@ div.loggraph-display {
 
 svg {
   background: #ffffff;
+}
+
+/* Dropzone stuff */
+form.dropzone {
+  border: 1px solid #c0c0c0;
+  background-color: #f0f0f0;
+  width: 800px;
+  height: 200px;
+  padding: 20px;
+  margin-left: 60px;
+  margin-right: 60px;
+  text-align: center;
+}
+
+.dropzone.dz-square .dz-default.dz-message {
+  background-position: 0 -123px;
+  width: 268px;
+  margin-left: -134px;
+  height: 174px;
+  margin-top: -87px;
+}
+
+/* Other input stuff */
+input {
+  font-family: Courier, monospace;
+  font-size: 12pt;
+}
+
+input.space_group {
+  width: 200px;
+}
+
+input.unit_cell {
+  width: 400px;
+}
+e
+input.d_min, input.d_max {
+  width: 80px;
+}
+
+table.form_layout {
+  padding: 8px;
+  background-color: none;
+  border: 2px;
+  width: 800px;
+  margin-left: 60px;
+  margin-right: 60px;
+}
+
+/* Submit button */
+/* This button was generated using CSSButtonGenerator.com */
+.flat_button {
+  -moz-box-shadow:inset 0px 1px 1px 0px #ffffff;
+  -webkit-box-shadow:inset 0px 1px 1px 0px #ffffff;
+  box-shadow:inset 0px 1px 1px 0px #ffffff;
+  background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #ededed), color-stop(1, #dfdfdf) );
+  background:-moz-linear-gradient( center top, #ededed 5%, #dfdfdf 100% );
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#dfdfdf');
+  background-color:#ededed;
+  -webkit-border-top-left-radius:0px;
+  -moz-border-radius-topleft:0px;
+  border-top-left-radius:0px;
+  -webkit-border-top-right-radius:0px;
+  -moz-border-radius-topright:0px;
+  border-top-right-radius:0px;
+  -webkit-border-bottom-right-radius:0px;
+  -moz-border-radius-bottomright:0px;
+  border-bottom-right-radius:0px;
+  -webkit-border-bottom-left-radius:0px;
+  -moz-border-radius-bottomleft:0px;
+  border-bottom-left-radius:0px;
+  text-indent:0;
+  border:1px solid #acacac;
+  display:inline-block;
+  color:black;
+  font-family: Futura, Verdana, Arial, Helvetica, sans-serif;
+  font-size:15px;
+  font-weight:normal;
+  font-style:normal;
+  height:45px;
+  line-height:45px;
+  width:131px;
+  text-decoration:none;
+  text-align:center;
+  text-shadow:1px 1px 0px #ffffff;
+}
+.flat_button:hover {
+  background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #dfdfdf), color-stop(1, #ededed) );
+  background:-moz-linear-gradient( center top, #dfdfdf 5%, #ededed 100% );
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#dfdfdf', endColorstr='#ededed');
+  background-color:#dfdfdf;
+}
+.flat_button:active {
+  position:relative;
+  top:1px;
+}
+
+/* jQuery UI modifications */
+
+.ui-corner-all, .ui-corner-top, .ui-corner-right, .ui-corner-tr {
+  border-top-right-radius: 1px;
+}
+.ui-corner-all, .ui-corner-bottom, .ui-corner-right, .ui-corner-br {
+border-bottom-right-radius: 1px;
+}
+.ui-corner-all, .ui-corner-bottom, .ui-corner-left, .ui-corner-bl {
+border-bottom-left-radius: 1px;
+}
+.ui-corner-all, .ui-corner-top, .ui-corner-right, .ui-corner-tr {
+border-top-right-radius: 1px;
+}
+.ui-corner-all, .ui-corner-top, .ui-corner-left, .ui-corner-tl {
+border-top-left-radius: 1px;
+}
+.ui-widget-header {
+  border: 1px solid #bbbbbb;
+  background: #dddddd;
+  color: #e0e0e0;
+  font-weight: bold;
+  font-family: Futura, Verdana, Arial, Helvetica, sans-serif;
+  font-size: 14pt;
+}
+.ui-widget-content {
+  border: 1px solid #aaaaaa;
+  background: none;
+  color: black;
 }

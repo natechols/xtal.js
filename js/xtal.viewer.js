@@ -14,13 +14,18 @@ xtal.viewer = (function(module) {
 
 var orthographic = false; // FIXME doesn't work properly with controls
 
-function XtalViewer (element_id, size, draw_gui, draw_axes) {
+function XtalViewer (element_id, element, draw_gui, draw_axes) {
   if (! element_id) {
     element_id = "ThreeJS";
   }
-  if (! size) {
+  var size;
+  if (! element) {
     size = [window.innerWidth, window.innerHeight];
+  } else {
+    size = [ element.width(), Math.max(element.height(), 800) ];
+    console.log("SIZE "+size);
   }
+  this.element = element;
   this.maps = [];
   this.models = [];
   this.gui_folders = [];
@@ -55,9 +60,11 @@ function XtalViewer (element_id, size, draw_gui, draw_axes) {
     renderer = new THREE.CanvasRenderer();
   this.renderer = renderer;
   renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-  renderer.domElement.style.position = "absolute";
-  renderer.domElement.style.top = "0px";
-  renderer.domElement.style.left = "0px";
+  if (! this.element) {
+    renderer.domElement.style.position = "absolute";
+    renderer.domElement.style.top = "0px";
+    renderer.domElement.style.left = "0px";
+  }
 
   container = document.getElementById(element_id);
   container.appendChild( renderer.domElement );
@@ -196,6 +203,14 @@ function XtalViewer (element_id, size, draw_gui, draw_axes) {
       }
     }
     model.geom_objects = null;
+    this.clear_model_selection(model);
+  }
+
+  this.clear_model_selection = function (model) {
+    if (model.selected) {
+      this.scene.remove(model.selected);
+    }
+    model.selected = null;
   }
   
   this.toggle_map_visibility = function (map, visible) {
@@ -223,7 +238,7 @@ function XtalViewer (element_id, size, draw_gui, draw_axes) {
     model.update_geom();
     this.render_model(model);
   }
-  
+
   this.render_mesh = function (map) {
     for (var i = 0; i < map.meshes.length; i++) {
       this.scene.add(map.meshes[i]);
@@ -280,8 +295,14 @@ function XtalViewer (element_id, size, draw_gui, draw_axes) {
 //**********************************************************************
 // EVENTS
 function OnWindowResize (viewer) {
-  SCREEN_WIDTH = window.innerWidth;
-  SCREEN_HEIGHT = window.innerHeight;
+  var SCREEN_WIDTH, SCREEN_HEIGHT;
+  if (viewer.element) {
+    SCREEN_WIDTH = viewer.element.width();
+    SCREEN_HEIGHT = viewer.element.height();
+  } else {
+    SCREEN_WIDTH = window.innerWidth;
+    SCREEN_HEIGHT = window.innerHeight;
+  }
   viewer.camera.aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
   viewer.camera.updateProjectionMatrix();
   viewer.renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );

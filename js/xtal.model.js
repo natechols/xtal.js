@@ -13,6 +13,7 @@ xtal.model = (function(module) {
 
 var eight_pi_squared = 8 * 3.14159 * 3.14159; // B = 8 * pi^2 * u^2
 var max_bond_length = 1.99;
+var max_bond_length_h = 1.3;
 var max_bond_length_SP = 2.2;
 var elements = [
   "H", "HE", "LI", "BE", "B", "C", "N", "O", "F", "NE", "NA", "MG",
@@ -46,9 +47,11 @@ function Model (pdb_string) {
   this.ligand_flags = null;
   this.connectivity = null;
   this.atom_lookup = null;
+  this.source = null;
 
   // Initialize from mmCIF model
   this.from_mmcif = function(cif_block) {
+    this.source = "mmcif";
     var chain_index = 0;
     var last_chain = null;
 		var atoms = cif_block.loop_dict('_atom_site');
@@ -84,6 +87,7 @@ function Model (pdb_string) {
 
   // Initialize from small molecule CIF - *not* the same as mmCIF!
   this.from_cif = function(cif_block) {
+    this.source = "cif";
     var uc_ = [
       cif_block.get("_cell_length_a"),
       cif_block.get("_cell_length_b"),
@@ -121,6 +125,7 @@ function Model (pdb_string) {
 	
   // Initialize from mmCIF model
   this.from_monlib = function(cif_block) {
+    this.source = "monlib";
     var chain_index = 0;
     var last_chain = null;
 		var atoms = cif_block.loop_dict('_chem_comp_atom');
@@ -146,6 +151,7 @@ function Model (pdb_string) {
 
   // Initialize from PDB string
   this.from_pdb = function(pdb_string) {
+    this.source = "pdb";
     console.log("from_pdb");
     var lines = pdb_string.split("\n");
     var chain_index = 0;
@@ -224,6 +230,15 @@ function Model (pdb_string) {
     }
     return this.ligand_flags;
   }
+  this.select_atom_names = function (atom_names) {
+    var selection = [];
+    console.log(atom_names, atom_names.length);
+    for (var j = 0; j < atom_names.length; j++) {
+      console.log(atom_names[j]);
+      selection.push(this.atom_lookup[atom_names[j]]);
+    }
+    return selection;
+  }
   this.extract_interesting_residues = function () {
     return extract_interesting_residues(this);
   }
@@ -300,6 +315,7 @@ function Atom (pdb_line) {
     var x = m['x'];
     var y = m['y'];
     var z = m['z'];
+    this.name = m['atom_id'];
     this.xyz = [x, y, z];
     this.element = m['type_symbol'];
     this.charge = m['partial_charge'];
@@ -384,8 +400,13 @@ function Atom (pdb_line) {
   }
   this.is_bonded_to = function (other) {
     if (! this.is_same_conformer(other)) return false;
+    if ((this.element == "H") && (other.element == "H")) return false;
     var dxyz = this.distance(other);
-    if (dxyz <= max_bond_length) {
+    if ((this.element == "H") || (other.element == "H")) {
+      if (dxyz <= max_bond_length_h) {
+        return true;
+      }
+    } else if (dxyz <= max_bond_length) {
       return true;
     } else if (dxyz < max_bond_length_SP) {
       if (this.is_s_or_p() || other.is_s_or_p()) {
