@@ -230,7 +230,7 @@ function Map () {
   // designed for vastly more primitive computers.  Since density values are
   // stored as bytes rather than (4-byte) floates, it has the big advantage
   // of being significantly more compact than CCP4 maps.
-  this.from_dsn6 = function (mapdata) {
+  this.from_dsn6 = function (mapdata, no_sigma_scale) {
     var array_buffer = new ArrayBuffer(512);
     var headerBytes = new Uint8Array(array_buffer);
     var header = new Int16Array(array_buffer);
@@ -271,10 +271,9 @@ function Map () {
       header[14] / cell_scale_factor
     );
     this.data = new GridArray(this.n_real, this.n_grid, this.origin);
-    var data_scale_factor = header[15] / header[18] + header[17];
-    var i_crs = [0,0,0];
-    var order_xyz = [2,1,0];
-    var n_crs = this.n_real;
+    var prod = header[15] / 100;
+    var plus = header[16];
+    //var data_scale_factor = header[15] / header[18] + header[16];
     var idx = 512;
     var n_blocks = [
       Math.ceil(this.n_real[0] / 8),
@@ -303,13 +302,18 @@ function Map () {
                   var i = i_ + this.origin[0];
                   var j = j_ + this.origin[1];
                   var k = k_ + this.origin[2];
-                  var density = brick[i_byte] * data_scale_factor;
+                  var density = (brick[i_byte] - plus) / prod;
                   this.data.set_grid_value(i, j, k, density);
                 }
                 i_byte += 1;
           }}} // end inner loop
     }}} // end outer loop
-    this.data.sigma_scale();
+    /*var dmin = 10000000, dmax = -1000000;
+    for (var i = 0; i < this.data.size; i++) {
+      var val = this.data.values[i];
+      if (*/
+    console.log(this.data.values);
+    if (! no_sigma_scale) this.data.sigma_scale();
   }
 
   this.show = function () {
