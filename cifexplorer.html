@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Test CIF parser</title>
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+		<link rel="stylesheet" href="css/xtal.css">
+		<script src="js/dependencies/jquery-2.1.0.min.js"></script>
+		<script src="js/dependencies/jquery-ui-1.10.4.min.js"></script>
+		<script src="js/xtal.cif.js"></script>
+		<script src="js/xtal.cifexplorer.js"></script>
+		<style>
+		html {
+			font-size:10pt;
+		}
+		</style>
+</head>
+<body>
+	<div id="xtal-cifexplorer">CIF Explorer</div>
+  <script>
+		function getParameterByName(name) {
+		    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+		    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+		        results = regex.exec(location.search);
+		    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+		}	
+		var model_id = getParameterByName("pdbid") || "1YJP.cif";
+		var elem = $("#xtal-cifexplorer");
+		var explorer = new xtal.cifexplorer.CIFExplorer(elem);
+		explorer.load('data/'+model_id);
+  </script>
+</body>
+</html>
