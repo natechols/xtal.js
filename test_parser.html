@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <title>Test CIF parser</title>
-		<script src="js/jquery-2.1.0.min.js"></script>
+		<script src="js/xtal.js"></script>
 		<script src="js/xtal.cif.js"></script>
 </head>
 <body>
@@ -16,9 +16,9 @@
 		        results = regex.exec(location.search);
 		    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 		}	
-		var pdbid = getParameterByName("pdbid") || "1yjp";
-		var reader = new xtal.cif.reader();
-		reader.load('phenix/' + pdbid + ".cif", function(model){
+		var model_id = getParameterByName("model_id") || "1YJP.cif";
+		var reader = new xtal.cif.Reader();
+		reader.load('data/' + model_id, function(model){
 			var block = model.first_block();
 			console.log(block);
 			var atoms = block.loop_dict('_atom_site');
