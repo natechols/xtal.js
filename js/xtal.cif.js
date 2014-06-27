@@ -151,7 +151,24 @@ xtal.cif = (function(module) {
 		/* Initialize a key in a loop */
   	this.data[key] = [];
   }
-
+	Block.prototype.groups = function() {
+		var ret = {};
+		for (var key in this.data) {
+			key = key.split(".")[0];
+			ret[key] = true;
+		}
+		return Object.keys(ret)
+	}
+	Block.prototype.group_keys = function(group) {
+		return this.keys_filter(group)
+	}
+	Block.prototype.keys_filter = function(group) {
+		return this.keys().filter(function(i){return i.lastIndexOf(group,0)===0});
+	}
+	Block.prototype.keys = function() {
+		return Object.keys(this.data);
+	}
+	
   /*********************************************/
   function Parser(block_callback) {
   	/* mmCIF Parser
@@ -180,10 +197,10 @@ xtal.cif = (function(module) {
   	// Process the lines in the input data.
 		this.gen.add(input);
 		var line = this.gen.next();
-    console.log(line);
+    // console.log(line);
 		while (line != null) {
       if (line[0] != '#') {
-        console.log(line);
+        // console.log(line);
 			  this.step = this.step(line);
       }
 			line = this.gen.next();
