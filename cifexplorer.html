@@ -13,6 +13,10 @@
 		html {
 			font-size:10pt;
 		}
+		body {
+			margin: 0px;
+			padding: 0px;
+		}
 		</style>
 </head>
 <body>
@@ -24,7 +28,7 @@
 		        results = regex.exec(location.search);
 		    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 		}	
-		var model_id = getParameterByName("pdbid") || "1YJP.cif";
+		var model_id = getParameterByName("model_id") || "1YJP.cif";
 		var elem = $("#xtal-cifexplorer");
 		var explorer = new xtal.cifexplorer.CIFExplorer(elem);
 		explorer.load('data/'+model_id);
