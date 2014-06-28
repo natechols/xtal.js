@@ -1,6 +1,33 @@
 /*********************************
 	CSS declarations for xtal.js
 *********************************/
+.xtal-cif-table {
+	padding: 0px;
+	margin: 0px;
+	border-spacing: 0px;
+	width: 100%;
+}
+.xtal-cif-table th {
+	border-bottom: solid 2px #ccc;
+}
+.xtal-cif-table td, .xtal-cif-table th {
+	padding: 5px;
+}
+.xtal-cif-table td {
+	border-bottom: dashed 1px #ccc;
+}
+.xtal-cif-table tbody:nth-child(odd) {
+	background: #eee;
+}
+.xtal-cif-table td.xtal-cif-tablegroup {
+	text-align: center;
+	font-weight: bold;
+}
+.xtal-cif-table td.xtal-cif-tablegroup,
+.xtal-cif-table tbody tr:last-child td {
+	border-bottom: solid 2px #ccc;
+}
+
 
 /* jQuery-UI Vertical tabs */
 .ui-tabs.ui-tabs-vertical {
