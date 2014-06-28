@@ -160,7 +160,7 @@ xtal.cif = (function(module) {
 		return Object.keys(ret)
 	}
 	Block.prototype.group_keys = function(group) {
-		return this.keys_filter(group)
+		return this.keys_filter(group+".")
 	}
 	Block.prototype.keys_filter = function(group) {
 		return this.keys().filter(function(i){return i.lastIndexOf(group,0)===0});
