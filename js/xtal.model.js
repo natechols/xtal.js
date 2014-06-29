@@ -230,6 +230,7 @@ function Model (pdb_string) {
     }
     return this.ligand_flags;
   }
+
   this.select_atom_names = function (atom_names) {
     var selection = [];
     console.log(atom_names, atom_names.length);
@@ -239,9 +240,24 @@ function Model (pdb_string) {
     }
     return selection;
   }
+
+  this.selection = function (selection_str) {
+    var selection = [];
+    var selector = new AtomSelector(selection_str);
+    for (var i = 0; i < this.atoms.length; i++) {
+      if (selector.is_in_selection(this.atoms[i])) {
+        console.log("A");
+        selection.push(i);
+      }
+    }
+    console.log(selection.length);
+    return selection;
+  }
+
   this.extract_interesting_residues = function () {
     return extract_interesting_residues(this);
   }
+
   this.update_atoms = function (other) {
     this.atoms = other.atoms;
     this.chain_indices = other.chain_indices;
@@ -250,6 +266,7 @@ function Model (pdb_string) {
     this.ligand_flags = null;
     return this;
   }
+
   this.get_center_and_size = function () {
     var xsum = 0, ysum = 0, zsum = 0, n_atoms = this.atoms.length;
     var xmax = -99999, xmin = 99999;
@@ -350,6 +367,7 @@ function Atom (pdb_line) {
     this.resname = pdb_line.substring(17, 20).trim();
     this.chain = pdb_line.substring(20, 22).trim();
     this.resseq = pdb_line.substring(22, 26);
+    this._resseq_as_int = null;
     this.icode = pdb_line.substring(26, 27).trim();
     var x = parseFloat(pdb_line.substring(30, 38));
     var y = parseFloat(pdb_line.substring(38, 46));
@@ -364,7 +382,14 @@ function Atom (pdb_line) {
       this.charge = pdb_line.substring(78, 80).trim();
     }
   }
-  
+
+  this.resseq_as_int = function () {
+    if (this._resseq_as_int == null) {
+      this._resseq_as_int = parseInt(this.resseq);
+    }
+    return this._resseq_as_int;
+  }
+
   this.distance = function (other) {
     return xtal.distance(this.xyz, other.xyz);
   }
@@ -643,6 +668,123 @@ function extract_interesting_residues (model) {
     features.push([ feature_type+": "+feature_name, [xmean, ymean, zmean] ]);
   }
   return features;
+}
+
+//----------------------------------------------------------------------
+// ATOM SELECTIONS
+function AtomSelector (selection_str) {
+  this.selection_str = selection_str;
+  this.chains = null;
+  this.resnames = null;
+  this.resseqs = null;
+  this.atom_names = null;
+  var clauses = selection_str.split(" ");
+  if (clauses.length == 0) {
+    throw Error("Empty selection string");
+  }
+  for (var i = 0; i < clauses.length; i++) {
+    var pair = clauses[i].split("=");
+    var sel_type = pair[0];
+    var sel_fields = pair[1].split(",");
+    if (sel_fields.length == 0) {
+      throw Error("Misformed selection '" + clauses[i] + "'");
+    }
+    if (sel_type == "chain") {
+      if (this.chains == null) {
+        this.chains = [];
+      }
+      for (var j = 0; j < sel_fields.length; j++) {
+        validate_selection_field(sel_fields[j], "chain ID", 2);
+        this.chains.push(sel_fields[j]);
+      }
+    } else if (sel_type.substring(0, 6) == "resnam") {
+      if (this.resnames == null) {
+        this.resnames = [];
+      }
+      for (var j = 0; j < sel_fields.length; j++) {
+        validate_selection_field(sel_fields[j], "residue name", 3);
+        this.resnames.push(sel_fields[j]);
+      }
+    } else if (sel_type == "resi" || sel_type == "resseq") {
+      if (this.resseqs == null) {
+        this.resseqs = [];
+      }
+      for (var j = 0; j < sel_fields.length; j++) {
+        var resseq_range = sel_fields[j].split("-");
+        if (resseq_range.length == 1) {
+          validate_selection_field(sel_fields[j], "residue number", 4);
+          var range = [ parseInt(sel_fields[j]),parseInt(sel_fields[j]) ];
+          this.resseqs.push(range);
+        } else if (resseq_range.length == 2) {
+          var range = [ parseInt(resseq_range[0]),parseInt(resseq_range[1]) ];
+          this.resseqs.push(range);
+        } else {
+          throw Error("Invalid residue range '" + sel_fields[j] + "'");
+        }
+      }
+    } else if (sel_type == "name") {
+      if (this.atom_names == null) {
+        this.atom_names = [];
+      }
+      for (var j = 0; j < sel_fields.length; j++) {
+        validate_selection_field(sel_fields[j], "atom name", 4);
+        this.atom_names.push(sel_fields[j]);
+      }
+    } else {
+      throw Error("Unrecognized selector token '" + sel_type + "'");
+    }
+  }
+
+  this.is_in_selection = function (atom) {
+    var allow_chain = (this.chains == null)
+    var allow_resname = (this.resnames == null);
+    var allow_resseq = (this.resseqs == null);
+    var allow_name = (this.atom_names == null);
+    if (this.chains != null) {
+      for (var i = 0; i < this.chains.length; i++) {
+        if (atom.chain == this.chains[i]) {
+          allow_chain = true;
+          break;
+        }
+      }
+      if (! allow_chain) return false;
+    }
+    if (this.resnames != null) {
+      for (var i = 0; i < this.resnames.length; i++) {
+        if (atom.resname == this.resnames[i]) {
+          allow_resname = true;
+          break;
+        }
+      }
+      if (! allow_resname) return false;
+    }
+    if (this.resseqs != null) {
+      for (var i = 0; i < this.resseqs.length; i++) {
+        var range = this.resseqs[i];
+        if (range[0] <= atom.resseq_as_int() <= range[1]) {
+          allow_resseq = true;
+          break;
+        }
+      }
+      if (! allow_resseq) return false;
+    }
+    if (this.atom_names != null) {
+      for (var i = 0; i < this.atom_names.length; i++) {
+        if (atom.name == this.atom_names[i]) {
+          allow_name = true;
+          break;
+        }
+      }
+      if (! allow_name) return false;
+    }
+    return true;
+  }
+}
+
+function validate_selection_field (sel_field, sel_type, max_size) {
+  if (! (0 < sel_field <= max_size)) {
+    throw Error("Bad " + sel_type + " '" + sel_fields + "'");
+  }
 }
 
 // Exports into xtal.model

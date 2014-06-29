@@ -59,6 +59,23 @@ div.popUp {
   display: none;
 }
 
+#selectionWindow {
+  width: 600px;
+  height: 40px;
+  margin: auto;
+  position: absolute;
+  left: 0; bottom: 0; right: 0;
+  display: none;
+  border: 1px solid;
+  border-color: #606060;
+  text-align: center;
+}
+
+#selectionControlsButton {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+}
+
 #loadBox {
   width: 300px;
 }
@@ -86,4 +103,8 @@ div.featureItem:hover {
 
 input.pdbIdInput {
   width: 50px;
+}
+
+input.selectionInput {
+  width: 400px;
 }

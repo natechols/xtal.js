@@ -146,6 +146,11 @@ function modelDisplayObject (model, name) {
   this.show_selection = function (atom_selection) {
     this.selected = new Highlights(this.model, atom_selection);
   }
+  this.select_atoms = function (atom_selection_str) {
+    var atom_selection = this.model.selection(atom_selection_str);
+    console.log(atom_selection.length);
+    this.show_selection(atom_selection);
+  }
   this.show_selection_by_atom_names = function (atom_names) {
     console.log(atom_names);
     atom_selection = this.model.select_atom_names(atom_names);

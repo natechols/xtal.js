@@ -12,7 +12,7 @@ xtal.viewer = (function(module) {
 	}
 })(xtal);
 
-// draw the widget
+// draw the PDB input field widget
 function draw_pdb_id_request (viewer, callback) {
   var body = $("body");
   var pdb_div = $("<div/>").attr("class", "centeredControls").attr("id",
@@ -25,7 +25,6 @@ function draw_pdb_id_request (viewer, callback) {
      //     $("<input/>").attr("type", "submit").attr("style", "display:none")
         )));
   $(document).on("submit", "#pdbIdForm", function (event) {
-  //$("#pdbIdForm").submit(function (event){
     event.preventDefault();
     var pdb_id = $("#pdbIdInput").val();
     collapsePanel();
@@ -42,6 +41,43 @@ function draw_pdb_id_request (viewer, callback) {
   body.append(show_btn);
 }
 
+function draw_selection_console (viewer) {
+  var body = $("body");
+  var sel_div = $("<div/>").attr("id", "selectionWindow").append(
+    $("<form/>").attr("id", "selectionForm").append(
+      $("<div/>").attr("class", "controlItem").attr("id", "atomSel").append(
+        $("<span/>").text("Select atoms:"),
+        $("<input/>").attr("type", "text").attr("id", "selectionInput").attr(
+          "class", "selectionInput"))));
+  $(document).on("submit", "#selectionForm", function (event) {
+    event.preventDefault();
+    var selection_str = $("#selectionInput").val();
+    collapsePanel();
+    viewer.select_atoms(selection_str);
+    return false;
+  });
+  body.append(sel_div);
+  var show_btn = $("<div/>").attr("class", "controlButton").attr("id",
+    "selectionControlsButton").append(
+      $("<div/>").attr("class", "controlMargin").attr("id",
+        "selectionControlsBtnMargin").append(
+        $("<div/>").attr("class", "controlItem").attr("id",
+          "selectionControlsShow").text("Select atoms...")));
+  body.append(show_btn);
+  $('#selectionControlsButton').click(expandSelection);
+}
+
+function draw_feature_list (viewer) {
+  var body = $("body");
+  var features_div = $("<div/>").attr("class", "controlBox").attr("id",
+    "featureBox").append(
+      $("<div/>").attr("id", "featuresBoxInner").append(
+        $("<div/>").attr("class", "controlMargin").append(
+          $("<div/>").attr("class", "controlHeader").attr("id",
+            "featureHandle").text("Important features"))));
+  body.append(features_div);
+}
+
 function expandPanel() {
   $('#loadControls').fadeIn('fast');
   $('#loadControlsButton').click(collapsePanel);
@@ -49,12 +85,25 @@ function expandPanel() {
 };
 
 function collapsePanel() {
-//  $('#loadControlsHandle').toggle(true);
   $('#loadControls').fadeOut('fast');
   $('#loadControlsButton').unbind('click');
   $('#loadControlsButton').click(expandPanel);
   $('#loadControlsShow').text("Load structure...");
 };
+
+function expandSelection() {
+  $("#selectionWindow").slideDown("fast");
+  $('#selectionControlsButton').unbind('click');
+  $("#selectionControlsButton").click(collapseSelection);
+  $("#selectronControlsShow").text("Hide selection window");
+}
+
+function collapseSelection() {
+  $("#selectionWindow").slideUp("fast");
+  $('#selectionControlsButton').unbind('click');
+  $("#selectionControlsButton").click(expandSelection);
+  $("#selectronControlsShow").text("Select atoms...");
+}
 
 function expandFeatures() {
   //$("#featureHeader").toggle(false);
@@ -71,6 +120,7 @@ function init_gui () {
   $(document).ready(function() {
     /* expandPanel on click, too - good for mobile devices without mouse */
     $('#loadControlsButton').click(expandPanel);
+    $('#selectionControlsButton').click(expandSelection);
     var feature_handle = $('#featureHandle');
     if (feature_handle) {
       $('#featureHandle').click(expandFeatures);
@@ -147,6 +197,9 @@ function getQuery(viewer, query) {
       viewer.load_dsn6_map("data/" + pair[1], pair[1], 0);
       have_query = true;
     }
+  }
+  if (have_query) {
+    viewer.animate();
   }
   return have_query;
 }

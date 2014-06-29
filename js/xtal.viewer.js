@@ -68,7 +68,7 @@ function XtalViewer (element_id, element, draw_gui, draw_axes) {
 
   container = document.getElementById(element_id);
   container.appendChild( renderer.domElement );
-  controls = new THREE.TrackballControls( camera,  renderer.domElement );
+  controls = new THREE.TrackballControls( camera,  renderer.domElement);
   this.controls = controls;
   controls.minDistance = 5;
   controls.maxDistance = 400;
@@ -152,10 +152,15 @@ function XtalViewer (element_id, element, draw_gui, draw_axes) {
     this.controls.target.z = xyz[2];
     this.camera.lookAt(xyz);
     this.controls.update();
+    this.camera.updateProjectionMatrix();
     this.redrawMaps();
-    this.render();
+    this.animate();
   }
-  
+
+  this.force_redraw = function () {
+    this.OnChange();
+  }
+ 
   this.zoomXYZ = function (xyz) {
     this.camera.position.x = xyz[0];
     this.camera.position.y = xyz[1];
@@ -212,7 +217,28 @@ function XtalViewer (element_id, element, draw_gui, draw_axes) {
     }
     model.selected = null;
   }
-  
+
+  this.select_atoms = function (selection_str, model) {
+    if (! model) {
+      if (this.models.length == 0) {
+        alert("No models loaded!");
+        throw Error();
+      } else if (this.models.length > 1) {
+        alert("More than one model possible");
+        throw Error();
+      }
+      model = this.models[0];
+    }
+    this.clear_model_selection(model);
+    model.select_atoms(selection_str);
+    if (model.selected) {
+      this.scene.add(model.selected);
+      this.render();
+    } else {
+      alert("No atoms selected!");
+    }
+  }
+ 
   this.toggle_map_visibility = function (map, visible) {
     map.parameters['visible'] = visible;
     if (visible) {
@@ -361,6 +387,7 @@ function initialize_map_object (viewer, map, map_name, diff_map_flag,
   map_display.update_mesh(viewer.global_parameters['map_radius'],
     viewer.last_center);
   viewer.render_mesh(map_display);
+  viewer.force_redraw();
 }
 
 function initialize_model_object (viewer, model, model_name) {
