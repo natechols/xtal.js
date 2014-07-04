@@ -31,6 +31,7 @@
 <body>
 	<div id="Viewer" style="position: absolute; left:0px; top:0px;"></div>
 
+<!--
 	<div class="controlBox" id="featureBox">
 	  <div id="featuresBoxInner">
 			<div class="controlMargin" id="featuresMargin">
@@ -39,6 +40,7 @@
 	 		<div class="popUp" id="featureList"></div>
 	  </div>
 	</div>
+-->
 
 	<div class="centeredControls" id="loadControls">
       <form action="javascript:requestFromServer();" id="pdbIdFetch">
@@ -59,9 +61,12 @@
 		init_gui();
 		$(function() {
       XV = new XtalViewer("Viewer", null, true, true);
+      draw_selection_console(XV);
 			XV.animate();
 			if (!getQuery(XV)) {
-			  expandPanel();
+        XV.load_pdb("data/1mru.pdb", "1mru");
+        XV.load_dsn6_map("data/1mru.omap", "2mFo-Dfc", 0);
+        XV.animate();
 			}
 		});
 	</script>

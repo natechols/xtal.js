@@ -1,6 +1,12 @@
 var xtal = (function(module) {
 
 //----------------------------------------------------------------------
+// SYMMETRY OPERATORS
+function Symops () {
+  this.ops = [];
+}
+
+//----------------------------------------------------------------------
 // UNIT CELL
 // Derived from cctbx.uctbx (C++ code)
 //

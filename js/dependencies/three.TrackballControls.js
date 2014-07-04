@@ -32,7 +32,7 @@ THREE.TrackballControls = function ( object, domElement ) {
 	this.minDistance = 0;
 	this.maxDistance = Infinity;
 
-	this.keys = [ 65 /*A*/, 83 /*S*/, 68 /*D*/ ];
+	this.keys = [ 18 /*alt*/, 17 /*ctrl*/, 16 /*shift*/ ];
 
 	// internals
 
@@ -358,11 +358,12 @@ THREE.TrackballControls = function ( object, domElement ) {
 
 			return;
 
-		} else if ( event.keyCode === _this.keys[ STATE.ROTATE ] && !_this.noRotate ) {
-
+		} else if ( event.keyCode === _this.keys[ STATE.ROTATE ] &&
+                ! _this.noRotate ) {
 			_state = STATE.ROTATE;
 
-		} else if ( event.keyCode === _this.keys[ STATE.ZOOM ] && !_this.noZoom ) {
+		} else if ( event.keyCode === _this.keys[ STATE.ZOOM ] &&
+                !_this.noZoom ) {
 
 			_state = STATE.ZOOM;
 
@@ -377,7 +378,6 @@ THREE.TrackballControls = function ( object, domElement ) {
 	function keyup( event ) {
 
 		if ( _this.enabled === false ) return;
-
 		_state = _prevState;
 
 		window.addEventListener( 'keydown', keydown, false );
@@ -436,7 +436,7 @@ THREE.TrackballControls = function ( object, domElement ) {
 
 			_this.getMouseOnScreen( event.pageX, event.pageY, _zoomEnd );
 
-		} else if ( _state === STATE.PAN && !_this.noPan ) {
+    } else if ( _state === STATE.PAN && !_this.noPan ) {
 
 			_this.getMouseOnScreen( event.pageX, event.pageY, _panEnd );
 
