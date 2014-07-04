@@ -123,6 +123,7 @@ function modelDisplayObject (model, name) {
   };
   this.geom_objects = null; // display object (drawLines, etc.)
   this.selected = null;
+  this._ribbon = null;
   this.update_geom = function () {
     if (this.parameters["render_style"] == "lines") {
       this.geom_objects = [
@@ -140,6 +141,16 @@ function modelDisplayObject (model, name) {
           this.parameters["carbon_color"], this.parameters["hydrogens"],
           true)
         // TODO spheres for ions
+      ];
+    } else if (this.parameters["render_style"] == "ribbon") {
+      if (this._ribbon == null) {
+        this._ribbon = new RibbonGeometry(this.model);
+      }
+      this.geom_objects = [
+        new Ribbon(this.model, this._ribbon),
+        new Bonds(this.model, this.parameters["color_scheme"],
+          this.parameters["carbon_color"], this.parameters["hydrogens"],
+          true)
       ];
     }
   }
@@ -230,14 +241,15 @@ Bonds = function drawLines (model, color_style, carbon_color,
     draw_hydrogens, ligands_only) {
   var colors = [];
   var visible_atoms = [];
+  var atoms = model.atoms();
   if ((! draw_hydrogens) && (model.has_hydrogens)) {
-    for (var i = 0; i < model.atoms.length; i++) {
-      if (model.atoms[i].element != "H") {
-        visible_atoms.push(model.atoms[i]);
+    for (var i = 0; i < atoms.length; i++) {
+      if (atoms[i].element != "H") {
+        visible_atoms.push(atoms[i]);
       }
     }
   } else {
-    visible_atoms = model.atoms;
+    visible_atoms = atoms;
   }
   if ((! color_style) || (color_style == "element") || ligands_only) {
     colors = color_by_element(visible_atoms, carbon_color, draw_hydrogens);
@@ -254,8 +266,8 @@ Bonds = function drawLines (model, color_style, carbon_color,
   }
   var k = 0;
   var geometry = new THREE.Geometry();
-  for (var i = 0; i < model.atoms.length; i++) {
-    var atom = model.atoms[i];
+  for (var i = 0; i < atoms.length; i++) {
+    var atom = atoms[i];
     var bonds = model.connectivity[i];
     var color = colors[k];
     if ((atom.element == "H") && (! draw_hydrogens)) {
@@ -286,7 +298,7 @@ Highlights = function drawHighlights (model, atom_selection) {
   var color = new THREE.Color(0x80ffe0);
   for (var j = 0; j < atom_selection.length; j++) {
     var i = atom_selection[j]
-    var atom = model.atoms[i];
+    var atom = atoms[i];
     var bonds = model.connectivity[i];
     if (bonds.length == 0) {
       draw_isolated_atom(atom, geometry, color);
@@ -375,8 +387,9 @@ function draw_isolated_atom (atom, geometry, color) {
 // Draw bonds connecting an atom
 function draw_bonded_atom (geometry, color, model, bonds, atom, draw_hydrogens,
     ligands_only, ligand_flags) {
+  var atoms = model.atoms();
   for (var j = 0; j < bonds.length; j++) {
-    var other = model.atoms[bonds[j]];
+    var other = atoms[bonds[j]];
     if ((! draw_hydrogens) && (other.element == "H")) {
       continue;
     } else if (ligands_only) {
@@ -388,6 +401,167 @@ function draw_bonded_atom (geometry, color, model, bonds, atom, draw_hydrogens,
       new THREE.Vector3(midpoint[0], midpoint[1], midpoint[2])
     );
     geometry.colors.push(color, color);
+  }
+}
+
+//----------------------------------------------------------------------
+// RIBBON
+Ribbon = function drawRibbon (model, ribbon_geom) {
+  var colors = color_by_index(model.atoms());
+  var geometry = new THREE.Geometry();
+  ribbon_geom.draw_ribbon(geometry, colors);
+  var material = new THREE.LineBasicMaterial({
+    vertexColors: THREE.VertexColors,
+    linewidth: 1
+  });
+  THREE.Line.call( this, geometry, material, THREE.LinePieces );
+};
+Ribbon.prototype=Object.create(THREE.Line.prototype);
+
+function RibbonGeometry (model) {
+  this.c_alpha_i_seqs = [];
+  this._segments = [];
+  var chains = model.chains();
+  var n_c_alpha = 0;
+  console.log("CHAINS:", chains.length);
+  for (var i_chain = 0; i_chain < chains.length; i_chain++) {
+    var last_c_alpha = null;
+    var residues = chains[i_chain].residues();
+    var current_segment = null;
+    console.log("RESIDUES:", residues.length);
+    for (var i_res = 0; i_res < residues.length; i_res++) {
+      var residue = residues[i_res];
+      if (residue.n_atoms() < 3) {
+        last_c_alpha = null;
+        continue;
+      }
+      var c_alpha = residue.get_atom("CA");
+      if (c_alpha == null) {
+        last_c_alpha = null;
+        continue;
+      }
+      n_c_alpha++;
+      if (last_c_alpha != null) {
+        if (c_alpha.distance(last_c_alpha) > 5.5) {
+          last_c_alpha = null;
+          current_segment = null;
+        }
+      }
+      if (current_segment == null) {
+        current_segment = new RibbonSegment(c_alpha, last_c_alpha);
+        this._segments.push(current_segment);
+      } else {
+        current_segment.add_residue(c_alpha);
+      }
+      last_c_alpha = c_alpha;
+    }
+  }
+  console.log("SEGMENTS:", this._segments.length);
+  this.draw_ribbon = function (geometry, colors) {
+    for (var i = 0; i < this._segments.length; i++) {
+      var segment = this._segments[i];
+      segment.draw_ribbon(geometry, colors);
+    }
+  }
+}
+
+function RibbonSegment (c_alpha, last_c_alpha) {
+  this._last_site = null
+  this._anchors = [ c_alpha.as_vec3() ];
+  this._indices = [ c_alpha.i_seq ];
+  this._vertices = null;
+  this._vertex_i_seqs = [];
+  if (last_c_alpha != null) {
+    this._last_site = last_c_alpha.as_vec3();
+  }
+  this.add_residue = function (c_alpha) {
+    this._anchors.push(c_alpha.as_vec3());
+    this._indices.push(c_alpha.i_seq);
+  }
+  this.construct_geometry = function (smoothness) {
+    var n_sites = this._anchors.length;
+    if (! smoothness) {
+      smoothness = 5;
+    }
+    if (this._last_site != null) {
+      this._anchors.splice(0, 0, this._last_site);
+      this._indices.splice(0, 0, this._indices[0]);
+    } else {
+      v01 = this._anchors[0].clone().sub(this._anchors[1]);
+      v00 = this._anchors[0].clone().add(v01);
+      this._anchors.splice(0, 0, v00);
+      this._indices.splice(0, 0, this._indices[0]);
+    }
+    var anchors = this._anchors;
+    var indices = this._indices;
+    // TODO next site
+    var t = smoothness;
+    var vertices = [];
+    var vertex_i_seqs = [];
+    for (var i = 1; i < n_sites-1; i++) {
+      var v0 = anchors[i-1];
+      var v1 = anchors[i];
+      var v2 = anchors[i+1];
+      var v3 = anchors[i+2];
+      var v10 = v1.clone().sub(v0).normalize();
+      var v23 = v2.clone().sub(v3).normalize();
+      var v05 = v0.clone().add(v1).multiplyScalar(0.5);
+      var _v15 = v1.clone().add(v2).multiplyScalar(0.5);
+      var v25 = v2.clone().add(v3).multiplyScalar(0.5);
+      var v15 = _v15.add(v10.clone().add(v23).multiplyScalar(0.5));
+      if (i == 1) {
+        vertices.push(v05);
+        vertex_i_seqs.push(indices[0]);
+        var new_vertices_0 = interpolate(v0,v05,v1,v15,t);
+        //vertices.push.apply(vertices, new_vertices_0);
+        for (var k = 0; k < new_vertices_0.length; k++) {
+          vertices.push(new_vertices_0[k]);
+          vertex_i_seqs.push(indices[i]);
+        }
+      }
+      vertices.push(anchors[i]);
+      vertex_i_seqs.push(indices[i]);
+      var new_vertices_1 = interpolate(v05,v1,v15,v2,t);
+      //vertices.push.apply(vertices, new_vertices_1);
+      for (var k = 0; k < new_vertices_1.length; k++) {
+        vertices.push(new_vertices_1[k]);
+        vertex_i_seqs.push(indices[i]);
+      }
+      vertices.push(v15);
+      vertex_i_seqs.push(indices[i]);
+      var new_vertices_2 = interpolate(v1,v15,v2,v25,t);
+      //vertices.push.apply(vertices, new_vertices_2);
+      for (var k = 0; k < new_vertices_2.length; k++) {
+        vertices.push(new_vertices_2[k]);
+        vertex_i_seqs.push(indices[i+1]);
+      }
+      if (i == (n_sites - 1)) {
+        var new_vertices_3 = interpolate(v15, v2,v25,v3,t);
+        vertices.push.apply(vertices, new_vertices_3);
+        for (var k = 0; k < new_vertices_3.length; k++) {
+          vertices.push(new_vertices_3[k]);
+          vertex_i_seqs.push(indices[n_sites]);
+        }
+      }
+    }
+    if (vertices.length != vertex_i_seqs.length) {
+      throw Error("Array size mismatch:",vertices.length,vertex_i_seqs.length);
+    }
+    this._vertices = vertices;
+    this._vertex_i_seqs = vertex_i_seqs;
+  }
+  this.draw_ribbon = function (geometry, colors) {
+    if (this._vertices == null) {
+      this.construct_geometry(8);
+    }
+    //console.log("DRAWING SEGMENT WITH " + this._vertices.length + " VERTICES");
+    vertices = this._vertices;
+    indices = this._vertex_i_seqs;
+    for (var i = 1; i < vertices.length; i++) {
+      var j = indices[i];
+      geometry.vertices.push(vertices[i-1], vertices[i]);
+      geometry.colors.push(colors[j], colors[j]);
+    }
   }
 }
 
@@ -495,3 +669,18 @@ function UnitCellBox (uc) {
 };
 
 UnitCellBox.prototype=Object.create(THREE.Line.prototype);
+
+function vec3 (x,y,z) {
+  return new THREE.Vector3(x,y,z);
+}
+
+function interpolate (p0, p1, p2, p3, n_points) {
+  var spline = new THREE.Spline([p0,p1,p2,p3]);
+  var points = [];
+  for (var i = 1; i <= n_points; i++) {
+    var k = (1.0 + i/n_points) / 3.0;
+    var pt = spline.getPoint(k);
+    points.push(new THREE.Vector3(pt.x, pt.y, pt.z));
+  }
+  return points;
+}

@@ -39,7 +39,8 @@ var nucleic_acids = [
 ];
 
 function Model (pdb_string) {
-  this.atoms = [];
+  this._atoms = [];
+  this._chains = null;
   this.chain_indices = [];
   this.unit_cell = null;
   this.space_group = null;
@@ -58,8 +59,9 @@ function Model (pdb_string) {
 		for (var i=0;i<atoms.length;i++) {
       var atom = new Atom();
       atom.from_mmcif(atoms[i]);
+      atom.i_seq = i;
       // Setup atom...
-      this.atoms.push(atom);
+      this._atoms.push(atom);
       // Update the chain.
       if (atom.chain != last_chain) {
         chain_index++;
@@ -68,7 +70,7 @@ function Model (pdb_string) {
       last_chain = atom.chain;
     }
     // Update connectivity.
-    if (this.atoms.length == 0) {
+    if (this._atoms.length == 0) {
       throw Error("No atom records found.")
     }
     // attempt to extract unit cell information
@@ -82,7 +84,7 @@ function Model (pdb_string) {
     ];
     this.process_unit_cell_params(uc_);
     this.space_group = cif_block.get('_symmetry.space_group_name_H-M');
-    this.connectivity = get_connectivity_fast(this.atoms);
+    this.connectivity = get_connectivity_fast(this._atoms);
   }
 
   // Initialize from small molecule CIF - *not* the same as mmCIF!
@@ -109,18 +111,19 @@ function Model (pdb_string) {
     var occ = cif_block.get('_atom_site_occupancy');
     for (var i = 0; i < labels.length; i++) {
       var atom = new Atom();
+      atom.i_seq = i;
       atom.name = labels[i];
       atom.element = elements[i];
       atom.b = u_iso[i] * u_iso[i] * eight_pi_squared;
       atom.occ = occ[i];
       atom.xyz = this.unit_cell.orthogonalize((frac_x[i],frac_y[i],frac_z[i]));
-      this.atoms.push(atom);
+      this._atoms.push(atom);
     }
-    if (this.atoms.length == 0) {
+    if (this._atoms.length == 0) {
       throw Error("No atom records found.")
     }
     // TODO use built-in bonding - is this always available?
-    this.connectivity = get_connectivity_fast(this.atoms);
+    this.connectivity = get_connectivity_fast(this._atoms);
   }
 	
   // Initialize from mmCIF model
@@ -132,8 +135,9 @@ function Model (pdb_string) {
 		for (var i=0;i<atoms.length;i++) {
       var atom = new Atom();
 			atom.from_monlib(atoms[i]);
+      atom.i_seq = i;
       // Setup atom...
-      this.atoms.push(atom);
+      this._atoms.push(atom);
       // Update the chain.
       if (atom.chain != last_chain) {
         chain_index++;
@@ -142,11 +146,11 @@ function Model (pdb_string) {
       last_chain = atom.chain;
     }
     // Update connectivity.
-    if (this.atoms.length == 0) {
+    if (this._atoms.length == 0) {
       throw Error("No atom records found.")
     }
-    this.connectivity = get_connectivity_fast(this.atoms);
-    this.atom_lookup = build_atom_name_dict(this.atoms);
+    this.connectivity = get_connectivity_fast(this._atoms);
+    this.atom_lookup = build_atom_name_dict(this._atoms);
   }
 
   // Initialize from PDB string
@@ -156,15 +160,15 @@ function Model (pdb_string) {
     var lines = pdb_string.split("\n");
     var chain_index = 0;
     var last_chain = null;
-  
+    var atom_i_seq = 0; 
     for (var i = 0; i < lines.length; i++) {
       line = lines[i];
       var rec_type = line.substring(0,6);
       if (rec_type == "ATOM  " || rec_type == "HETATM") {
         var new_atom = new Atom() 
         new_atom.from_pdb_line(line);
-        
-        this.atoms.push(new_atom);
+        new_atom.i_seq = atom_i_seq++;
+        this._atoms.push(new_atom);
         if ((! this.has_hydrogens) && (new_atom.element == "H")) {
           this.has_hydrogens = true;
         }
@@ -186,12 +190,12 @@ function Model (pdb_string) {
         chain_index++;
       }
     }
-    if (this.atoms.length == 0) {
+    if (this._atoms.length == 0) {
       throw Error("No atom records found.")
     }
 
     //this.connectivity = get_connectivity_simple(this.atoms);
-    this.connectivity = get_connectivity_fast(this.atoms);
+    this.connectivity = get_connectivity_fast(this._atoms);
   }
 
   // create a unit cell object from parameters
@@ -210,16 +214,41 @@ function Model (pdb_string) {
       return true;
     }
     return false;
+  }
+  this.atoms = function () {
+    return this._atoms;
   } 
- 
+  this.residues = function () {
+    return []; // TODO
+  }
+  this.chains = function () {
+    if (this._chains == null) {
+      this._chains = [];
+      var last_chain_index = null;
+      var chain_atoms = null;
+      for (var i = 0; i < this._atoms.length; i++) {
+        var chain_index = this.chain_indices[i];
+        if (chain_index != last_chain_index) {
+          if (chain_atoms != null) {
+            this._chains.push(new Chain(chain_atoms));
+          }
+          chain_atoms = []
+        }
+        chain_atoms.push(this._atoms[i]);
+        last_chain_index = chain_index;
+      }
+      this._chains.push(new Chain(chain_atoms));
+    }
+    return this._chains;
+  }
   this.extract_trace = function () {
     return extract_trace(this);
   }
   this.extract_ligands = function () {
     if (this.ligand_flags == null) {
       this.ligand_flags = [];
-      for (var i = 0; i < this.atoms.length; i++) {
-        var atom = this.atoms[i];
+      for (var i = 0; i < this._atoms.length; i++) {
+        var atom = this._atoms[i];
         if ((! atom.is_water()) && (amino_acids.indexOf(atom.resname) < 0) &&
             (nucleic_acids.indexOf(atom.resname) < 0)) {
           this.ligand_flags.push(true);
@@ -244,8 +273,8 @@ function Model (pdb_string) {
   this.selection = function (selection_str) {
     var selection = [];
     var selector = new AtomSelector(selection_str);
-    for (var i = 0; i < this.atoms.length; i++) {
-      if (selector.is_in_selection(this.atoms[i])) {
+    for (var i = 0; i < this._atoms.length; i++) {
+      if (selector.is_in_selection(this._atoms[i])) {
         console.log("A");
         selection.push(i);
       }
@@ -259,7 +288,7 @@ function Model (pdb_string) {
   }
 
   this.update_atoms = function (other) {
-    this.atoms = other.atoms;
+    this._atoms = other.atoms();
     this.chain_indices = other.chain_indices;
     this.connectivity = other.connectivity;
     this.has_hydrogens = other.has_hydrogens;
@@ -268,13 +297,13 @@ function Model (pdb_string) {
   }
 
   this.get_center_and_size = function () {
-    var xsum = 0, ysum = 0, zsum = 0, n_atoms = this.atoms.length;
+    var xsum = 0, ysum = 0, zsum = 0, n_atoms = this._atoms.length;
     var xmax = -99999, xmin = 99999;
     var ymax = -99999, ymin = 99999;
     var zmax = -99999, zmin = 99999;
     for (var i = 0; i < n_atoms; i++) {
-      var x = this.atoms[i].xyz[0], y = this.atoms[i].xyz[1],
-          z = this.atoms[i].xyz[2];
+      var x = this._atoms[i].xyz[0], y = this._atoms[i].xyz[1],
+          z = this._atoms[i].xyz[2];
       xsum += x;
       ysum += y;
       zsum += z;
@@ -305,7 +334,7 @@ function Atom (pdb_line) {
   this.b = 0;
   this.element = "";
   this.charge = 0;
-  this.i_seq = "";
+  this.i_seq = null;
   
   this.from_mmcif = function(m) {
     if (m['group_pdb'] == "HETATM") {
@@ -389,7 +418,9 @@ function Atom (pdb_line) {
     }
     return this._resseq_as_int;
   }
-
+  this.resid = function () {
+    return this.resseq + this.icode;
+  }
   this.distance = function (other) {
     return xtal.distance(this.xyz, other.xyz);
   }
@@ -408,6 +439,9 @@ function Atom (pdb_line) {
   this.is_water = function () {
     return this.resname == "HOH";
   }
+  this.as_vec3 = function () {
+    return new THREE.Vector3().fromArray(this.xyz);
+  }
   this.is_same_residue = function (other, ignore_altloc) {
     if ((other.resseq != this.resseq) || (other.icode != this.icode) ||
         (other.chain != this.chain) || (other.resname != this.resname) ||
@@ -422,6 +456,9 @@ function Atom (pdb_line) {
       return true;
     }
     return false;
+  }
+  this.is_main_conformer = function () {
+    return ((this.altloc == "") || (this.altloc == "A"));
   }
   this.is_bonded_to = function (other) {
     if (! this.is_same_conformer(other)) return false;
@@ -586,14 +623,14 @@ function extract_trace (model) {
   var current_segment = [];
   var last_chain_index = null;
   var last_atom_index = null;
-  for (var i = 0; i < model.atoms.length; i++) {
-    var atom = model.atoms[i];
+  for (var i = 0; i < model.atoms().length; i++) {
+    var atom = model.atoms()[i];
     var chain_index = model.chain_indices[i];
     var start_new = false;
     if ((atom.altloc != "") && (atom.altloc != "A")) continue;
     if ((atom.name == "CA" && atom.element == "C") || (atom.name == "P")) {
       if ((last_atom_index != null) && (last_chain_index == chain_index)) {
-        var dxyz = atom.distance(model.atoms[last_atom_index]);
+        var dxyz = atom.distance(model.atoms()[last_atom_index]);
         if (((atom.name == "CA") && (dxyz <= 5.5)) ||
             ((atom.name == "P") && (dxyz < 7.5))) {
           current_segment.push(atom);
@@ -629,8 +666,8 @@ function extract_interesting_residues (model) {
   var residues = [];
   var current_atoms = null;
   var last_atom = null;
-  for (var i = 0; i < model.atoms.length; i++) {
-    var atom = model.atoms[i];
+  for (var i = 0; i < model.atoms().length; i++) {
+    var atom = model.atoms()[i];
     if ((atom.resname != "HOH") &&
         (amino_acids.indexOf(atom.resname) < 0) &&
         (nucleic_acids.indexOf(atom.resname) < 0)) {
@@ -784,6 +821,59 @@ function AtomSelector (selection_str) {
 function validate_selection_field (sel_field, sel_type, max_size) {
   if (! (0 < sel_field <= max_size)) {
     throw Error("Bad " + sel_type + " '" + sel_fields + "'");
+  }
+}
+
+function Residue () {
+  this._atoms = [];
+
+  this.n_atoms = function () {
+    return this._atoms.length;
+  }
+  this.atoms = function () {
+    return this._atoms;
+  }
+  this.append_atom = function (atom) {
+    this._atoms.push(atom);
+  }
+  this.get_atom = function (name, altloc) {
+    for (var i = 0; i < this._atoms.length; i++) {
+      var atom = this._atoms[i];
+      if ((atom.name == name) && ((atom.altloc == altloc) ||
+          ((altloc == null) && atom.is_main_conformer()))) {
+        return atom;
+      }
+    }
+    return null;
+  }
+}
+
+function Chain (atoms) {
+  this._residues = [];
+  this.id = atoms[0].chain;
+  var current_residue = null;
+  var last_atom = null, last_resid = null;
+  for (var i = 0; i < atoms.length; i++) {
+    var atom = atoms[i];
+    var resid = atom.resid();
+    if (resid != last_resid) {
+      current_residue = new Residue();
+      this._residues.push(current_residue);
+      current_residue.append_atom(atom);
+      last_resid = resid;
+    } else {
+      current_residue.append_atom(atom);
+    }
+  }
+  this.residues = function () {
+    return this._residues;
+  }
+  this.atoms = function () {
+    var atoms_ = [];
+    for (var i = 0; i < this._residues.length; i++) {
+      atoms_.push(this._residues[i].atoms());
+    }
+    return atoms_;
   }
 }
 
