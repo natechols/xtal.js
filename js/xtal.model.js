@@ -15,6 +15,8 @@ var eight_pi_squared = 8 * 3.14159 * 3.14159; // B = 8 * pi^2 * u^2
 var max_bond_length = 1.99;
 var max_bond_length_h = 1.3;
 var max_bond_length_SP = 2.2;
+var anisou_factor = 1.e-4;
+
 var elements = [
   "H", "HE", "LI", "BE", "B", "C", "N", "O", "F", "NE", "NA", "MG",
   "AL", "SI", "P", "S", "CL", "AR", "K", "CA", "SC", "TI", "V", "CR",
@@ -38,6 +40,8 @@ var nucleic_acids = [
   "Ar", "Cr", "Gr", "Ur"
 ];
 
+// Container for a single model (assumed right now to be a complete PDB, mmCIF,
+// or other CIF file - no multi-MODEL files allowed right now).
 function Model (pdb_string) {
   this._atoms = [];
   this._chains = null;
@@ -114,6 +118,7 @@ function Model (pdb_string) {
       atom.i_seq = i;
       atom.name = labels[i];
       atom.element = elements[i];
+      atom._u_iso = u_iso[i];
       atom.b = u_iso[i] * u_iso[i] * eight_pi_squared;
       atom.occ = occ[i];
       atom.xyz = this.unit_cell.orthogonalize((frac_x[i],frac_y[i],frac_z[i]));
@@ -161,6 +166,7 @@ function Model (pdb_string) {
     var chain_index = 0;
     var last_chain = null;
     var atom_i_seq = 0; 
+    var last_atom = null;
     for (var i = 0; i < lines.length; i++) {
       line = lines[i];
       var rec_type = line.substring(0,6);
@@ -177,6 +183,9 @@ function Model (pdb_string) {
         }
         this.chain_indices.push(chain_index);
         last_chain = new_atom.chain;
+        last_atom = new_atom;
+      } else if (rec_type == "ANISOU") {
+        last_atom.set_uij_from_anisou(line);
       } else if (rec_type == "CRYST1") {
         var a = parseFloat(line.substring(6, 15));
         var b = parseFloat(line.substring(15, 24));
@@ -322,6 +331,7 @@ function Model (pdb_string) {
   }
 }
 
+// Single atom and associated labels
 function Atom (pdb_line) {
   this.hetero = false;
   this.name = "";
@@ -332,6 +342,8 @@ function Atom (pdb_line) {
   this.xyz = [0, 0, 0];
   this.occ = 1.0;
   this.b = 0;
+  this._u_iso = null;
+  this.uij = null;
   this.element = "";
   this.charge = 0;
   this.i_seq = null;
@@ -366,26 +378,13 @@ function Atom (pdb_line) {
     this.element = m['type_symbol'];
     this.charge = m['partial_charge'];
 	}
-	
-  // From PDB Line.
-  // 13 - 16  Atom          name          Atom name.
-  // 17       Character     altLoc        Alternate location indicator.
-  // 31 - 38  Real(8.3)     x             Orthogonal coordinates for X in
-  //                                      Angstroms.
-  // 39 - 46  Real(8.3)     y             Orthogonal coordinates for Y in
-  //                                      Angstroms.
-  // 47 - 54  Real(8.3)     z             Orthogonal coordinates for Z in
-  //                                      Angstroms.
-  // 55 - 60  Real(6.2)     occupancy     Occupancy.
-  // 61 - 66  Real(6.2)     tempFactor    Temperature factor.
-  // 73 - 76  LString(4)    segID         Segment identifier, left-justified.
-  // 77 - 78  LString(2)    element       Element symbol, right-justified.
-  // 79 - 80  LString(2)    charge        Charge on the atom.
+
+  // http://www.wwpdb.org/documentation/format33/sect9.html#ATOM	
   this.from_pdb_line = function(pdb_line) {
     if (pdb_line.length < 66) {
       throw Error("ATOM or HETATM record is too short: " + pdb_line);
     }
-    var rec_type = line.substring(0, 6);
+    var rec_type = pdb_line.substring(0, 6);
     if (rec_type == "HETATM") {
       this.hetero = true;
     } else if (rec_type != "ATOM  ") {
@@ -412,6 +411,33 @@ function Atom (pdb_line) {
     }
   }
 
+  // http://www.wwpdb.org/documentation/format33/sect9.html#ANISOU
+  this.set_uij_from_anisou = function (pdb_line) {
+    var rec_type = line.substring(0, 6);
+    if (rec_type != "ANISOU") {
+      throw Error("Wrong record type: " + rec_type);
+    }
+    var name = pdb_line.substring(12,16).trim();
+    var altloc = pdb_line.substring(16, 17).trim();
+    var resname = pdb_line.substring(17, 20).trim();
+    var chain = pdb_line.substring(20, 22).trim();
+    var resseq = pdb_line.substring(22, 26);
+    var icode = pdb_line.substring(26, 27).trim();
+    if ((name != this.name) || (altloc != this.altloc) ||
+        (resname != this.resname) || (chain != this.chain) ||
+        (resseq != this.resseq) || (icode != this.icode)) {
+      throw Error("Mismatch to ATOM record: " + pdb_line);
+    }
+    this.uij = [
+      parseInt(pdb_line.substring(28, 35)) * anisou_factor,
+      parseInt(pdb_line.substring(35, 42)) * anisou_factor,
+      parseInt(pdb_line.substring(42, 49)) * anisou_factor,
+      parseInt(pdb_line.substring(49, 56)) * anisou_factor,
+      parseInt(pdb_line.substring(56, 63)) * anisou_factor,
+      parseInt(pdb_line.substring(63, 70)) * anisou_factor
+    ];
+  }
+
   this.resseq_as_int = function () {
     if (this._resseq_as_int == null) {
       this._resseq_as_int = parseInt(this.resseq);
@@ -420,6 +446,12 @@ function Atom (pdb_line) {
   }
   this.resid = function () {
     return this.resseq + this.icode;
+  }
+  this.b_as_u = function () {
+    if (this._u_iso == null) {
+      this._u_iso = Math.sqrt(this.b / eight_pi_squared);
+    }
+    return this._u_iso;
   }
   this.distance = function (other) {
     return xtal.distance(this.xyz, other.xyz);
@@ -479,6 +511,11 @@ function Atom (pdb_line) {
   }
 }
 
+// Memoization of atom neighbors for fast connectivity determination.  Atoms
+// are grouped into boxes of a set size (not much longer than the maximum
+// expected bond length), and the box index for each atom is stored in a list.
+// Searching for neighbors only requires that we examine this box and the 15
+// neighboring boxes.
 function Cubicles (atoms, box_length) {
   box_length = box_length || 3;
   var xcoords = [];
@@ -824,6 +861,10 @@ function validate_selection_field (sel_field, sel_type, max_size) {
   }
 }
 
+//----------------------------------------------------------------------
+// SIMPLE HIERARCHY OBJECTS
+
+// Grouping for atoms in the same residue.
 function Residue () {
   this._atoms = [];
 
@@ -848,6 +889,8 @@ function Residue () {
   }
 }
 
+// Grouping for atoms in the same chain - internally these will be organized
+// as Residue objects.
 function Chain (atoms) {
   this._residues = [];
   this.id = atoms[0].chain;

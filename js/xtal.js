@@ -318,7 +318,6 @@ function Map () {
     for (var i = 0; i < this.data.size; i++) {
       var val = this.data.values[i];
       if (*/
-    console.log(this.data.values);
     if (! no_sigma_scale) this.data.sigma_scale();
   }
 
@@ -334,6 +333,10 @@ function Map () {
   }
 }
 
+// Extract a block of density for calculating an isosurface using the
+// separate marching cubes implementation.  Unlike the rest of this module,
+// this function explicitly uses Three.js (although this is not absolutely
+// necessary).
 function cartesian_map_data (unit_cell, map_data, center, radius) {
   if (! center) {
     center = [0, 0, 0];
@@ -361,8 +364,8 @@ function cartesian_map_data (unit_cell, map_data, center, radius) {
         if (! site_cart) {
           throw Error("Site undefined for " + i + ","+j+","+k);
         }
-        this.points.push( new THREE.Vector3(site_cart[0], site_cart[1],
-                                            site_cart[2]) );
+        //this.points.push( [ site_cart[0], site_cart[1], site_cart[2] ] );
+        this.points.push( new THREE.Vector3(site_cart[0], site_cart[1], site_cart[2] ) );
         map_value = map_data.get_grid_value(i,j,k);
         if (map_value == null) {
           throw Error("oops: " + map_value + " (" + i+","+j+","+k+")");
