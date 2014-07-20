@@ -50,6 +50,7 @@ function XtalViewer (element_id, element, draw_gui, draw_axes) {
     camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
   }
   this.camera = camera;
+  this.fov = camera.fov;
   scene.add(camera);
   scene.fog = new THREE.Fog(0x000000, 60, 100);
   camera.position.set(20,20,60);
@@ -79,6 +80,9 @@ function XtalViewer (element_id, element, draw_gui, draw_axes) {
   scene.add(light);
   origin = new Axis(0.5, [0,0,0], true);
   scene.add(origin);
+
+  // leapmotion
+  this.lastValidFrame = null;
 
   this.create_gui = function () { return create_gui(this); };
   if (draw_gui) {
@@ -144,6 +148,7 @@ function XtalViewer (element_id, element, draw_gui, draw_axes) {
     this.camera.lookAt(this.scene.position);
     this.controls.update();
     this.OnChange();
+    this.lastValidFrame = null;
   }
 
   this.recenter = function (xyz) {
@@ -155,6 +160,7 @@ function XtalViewer (element_id, element, draw_gui, draw_axes) {
     this.camera.updateProjectionMatrix();
     this.redrawMaps();
     this.animate();
+    this.lastValidFrame = null;
   }
 
   this.force_redraw = function () {
@@ -166,6 +172,7 @@ function XtalViewer (element_id, element, draw_gui, draw_axes) {
     this.camera.position.y = xyz[1];
     this.camera.position.z = xyz[2] + 20;
     this.recenter(xyz);
+    this.lastValidFrame = null;
   }
 
   // MODEL AND MAP DISPLAY
@@ -184,6 +191,7 @@ function XtalViewer (element_id, element, draw_gui, draw_axes) {
           center);
         this.render_mesh(this.maps[i]);
       }
+      this.lastValidFrame = null;
     }
   }
   
@@ -316,6 +324,12 @@ function XtalViewer (element_id, element, draw_gui, draw_axes) {
   this.load_eds_maps = function (pdb_id) {
     return load_eds_maps(this, pdb_id);
   }
+  this.enable_leap_motion = function () {
+    var _viewer = this;
+    Leap.loop(function(frame) {
+      OnFrame(_viewer, frame);
+    });
+  }
 }
 
 //**********************************************************************
@@ -355,6 +369,61 @@ function OnChange (viewer) {
 function OnEnd (viewer) {
   viewer.redrawAxes();
   viewer.redrawMaps();
+}
+
+// LeapMotion controller
+// https://codepen.io/leapmotion/pen/cEilz
+function OnFrame (viewer, frame) {
+  if (frame.valid) {
+    if (! viewer.lastValidFrame) {
+      viewer.lastValidFrame = frame;
+    }
+    var t = viewer.lastValidFrame.translation(frame);
+    viewer.lastValidFrame = frame;
+    if ((t[0] < 0.001) && (t[1] < 0.001) && (t[2] < 0.001)) {
+      return;
+    }
+    console.log(t);
+// XXX This is not really usable at present - need to figure out camera
+// rotation about an arbitrary origin
+/*
+    var cx = viewer.camera.position.x,
+        cy = viewer.camera.position.y,
+        cz = viewer.camera.position.z;
+    var ox = viewer.controls.target.x,
+        oy = viewer.controls.target.y,
+        oz = viewer.controls.target.z;
+    var cameraRadius = Math.sqrt((cx-ox)*(cx-ox) + (cy-oy)*(cy-oy) +
+                                 (cz-oz)*(cz-oz));
+    //limit y-axis between 0 and 180 degrees
+    curY = Math.max(0, Math.min((t[1] + 300) / 600 * 179, 179));
+
+    //assign rotation coordinates
+    rotateX = t[0]
+    rotateY = -curY
+    zoom = t[2];
+    zoomFactor = 1/(1 + (zoom / 150));
+    //console.log(zoom, zoomFactor);
+    if (zoomFactor > 1) {
+      zoomFactor = Math.min(zoomFactor, 1.05);
+    } else {
+      zoomFactor = Math.max(zoomFactor, 0.95);
+    }
+    if ((cameraRadius < 5) && (zoomFactor > 0)) {
+      zoomFactor = 1;
+    }
+    //cameraRadius *= zoomFactor;
+    cameraRadius = 1;
+    //adjust 3D spherical coordinates of the camera
+    viewer.camera.position.x = cx +  cameraRadius * Math.sin(rotateY * Math.PI/180) * Math.cos(rotateX * Math.PI/180);
+    viewer.camera.position.z = cy + cameraRadius * Math.sin(rotateY * Math.PI/180) * Math.sin(rotateX * Math.PI/180);
+    viewer.camera.position.y = cz + cameraRadius * Math.cos(rotateY * Math.PI/180);
+    viewer.camera.lookAt(viewer.controls.target); //scene.position)
+    OnChange(viewer);
+    viewer.render();
+    viewer.update();
+*/
+  }
 }
 
 function animate (viewer) {
