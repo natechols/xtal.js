@@ -152,6 +152,10 @@ function modelDisplayObject (model, name) {
           this.parameters["carbon_color"], this.parameters["hydrogens"],
           true)
       ];
+    } else if (this.parameters["render_style"] == "ellipsoids") {
+      this.geom_objects = [
+        drawEllipsoids(this.model)
+      ];
     }
   }
   this.show_selection = function (atom_selection) {
@@ -563,6 +567,55 @@ function RibbonSegment (c_alpha, last_c_alpha) {
       geometry.colors.push(colors[j], colors[j]);
     }
   }
+}
+
+//----------------------------------------------------------------------
+// ADP ellipsoids
+// TODO should probably be combined with bond display, and inherit colors
+// FIXME this could be a great deal faster
+// XXX one possible optimization would be to only display ellipsoids within
+// the same radius as the map - however this might annoy people who want to
+// view TLS groups collectively, etc.
+function drawEllipsoids (model, draw_hydrogens, color_style) {
+  var colors = [];
+  var visible_atoms = [];
+  var atoms = model.atoms();
+  if ((! draw_hydrogens) && (model.has_hydrogens)) {
+    for (var i = 0; i < atoms.length; i++) {
+      if (atoms[i].element != "H") {
+        visible_atoms.push(atoms[i]);
+      }
+    }
+  } else {
+    visible_atoms = atoms;
+  }
+  // XXX probably need more flexibility here
+  colors = color_by_bfactor(visible_atoms, draw_hydrogens);
+  var geometry = new THREE.Geometry(); /*
+    new THREE.Geometry(),
+    new THREE.MeshBasicMaterial() );*/
+  var materials = [];
+  var sphere_geometry = new THREE.SphereGeometry( 1, 8, 6 );
+  for (var i = 0; i < visible_atoms.length; i++) {
+    var atom = visible_atoms[i];
+    if (atom.uij == null) continue;
+    var color = colors[i];
+    var m = xtal.ellipsoid_to_sphere_transform(atom.uij, atom.xyz);
+    // I think the input transform (m) is column-major - we need row-major
+    var transform = new THREE.Matrix4(
+      m[0], m[4], m[8], m[12],
+      m[1], m[5], m[9], m[13],
+      m[2], m[6], m[10], m[14],
+      m[3], m[7], m[11], m[15]
+    );
+    //sphere_geometry.applyMatrix( transform );
+    var wireframeMaterial = new THREE.MeshBasicMaterial( {
+      color: color, wireframe: true, transparent: false } );
+    materials.push(wireframeMaterial);
+    geometry.merge(sphere_geometry, transform, i);
+  }
+  var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials));
+  return mesh; //return geometry;
 }
 
 //----------------------------------------------------------------------

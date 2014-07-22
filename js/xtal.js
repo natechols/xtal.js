@@ -403,6 +403,164 @@ average = function(a) {
   return r.deviation = Math.sqrt(r.variance = s / t), r;
 }
 
+// Eigensystem solver (used to render anisotropic ellipsoids)
+// adapted (with minimal changes) from scitbx/matrix/eigensystem.h in CCTBX
+// original code by Ralf Grosse-Kunstleve, based on code by Ian Tickle, David
+// Moss, & Mark Williams in Bioinformatics Template Library (BTL)
+function eigensystem_from_uij (uij) {
+  var n = 3;
+  var a = [ uij[0], uij[3], uij[1], uij[4], uij[5], uij[2] ];
+  var eigenvectors = [1,0,0,0,1,0,0,0,1];
+  var eigenvalues = [0,0,0];
+  var relative_epsilon = 1.e-10;
+  var absolute_epsilon = 0;
+  // Setup variables
+  var il, ilq, ilr, im, imq, imr, ind, iq;
+  var j, k, km, l, ll, lm, lq, m, mm, mq;
+  var am, anorm, anrmx, cosx, cosx2, sincs, sinx, sinx2, thr, x, y;
+  // Initial and final norms (anorm & anrmx).
+  anorm=0.0;
+  iq=0;
+  for (i=0; i<n; i++) {
+    for (j=0; j<=i; j++) {
+      if (j!=i) anorm+=a[iq]*a[iq];
+      ++iq;
+    }
+  }
+  anorm=Math.sqrt(2.0*anorm);
+  anrmx=relative_epsilon*anorm/n;
+  if (anrmx < absolute_epsilon) anrmx = absolute_epsilon;
+  if (anorm>0.0) {
+    // Compute threshold and initialise flag.
+    thr=anorm;
+    while (thr>anrmx) { // Compare threshold with final norm
+      thr/=n;
+      ind=1;
+      while (ind) {
+        ind=0;
+        l=0;
+        while (l != n-1) { // Test for l beyond penultimate column
+          lq=l*(l+1)/2;
+          ll=l+lq;
+          m=l+1;
+          ilq=n*l;
+          while (m != n) { // Test for m beyond last column
+            // Compute sin & cos.
+            mq=m*(m+1)/2;
+            lm=l+mq;
+            if (a[lm]*a[lm]>thr*thr) {
+              ind=1;
+              mm=m+mq;
+              x=0.5*(a[ll]-a[mm]);
+              var denominator=Math.sqrt(a[lm]*a[lm]+x*x);
+              if (denominator == 0) {
+                throw Error("denominator is zero");
+              }
+              y=-a[lm]/denominator;
+              if (x<0.0) y=-y;
+              sinx=y/Math.sqrt(2.0*(1.0+(Math.sqrt(1.0-y*y))));
+              if (x<0.0) y=-y;
+              sinx=y/Math.sqrt(2.0*(1.0+(Math.sqrt(1.0-y*y))));
+              sinx2=sinx*sinx;
+              cosx=Math.sqrt(1.0-sinx2);
+              cosx2=cosx*cosx;
+              sincs=sinx*cosx;
+              // Rotate l & m columns.
+              imq=n*m;
+              for (i=0; i<n; i++) {
+                iq=i*(i+1)/2;
+                if (i!=l && i!=m) {
+                  if (i<m) im=i+mq;
+                  else     im=m+iq;
+                  if (i<l) il=i+lq;
+                  else     il=l+iq;
+                  x=a[il]*cosx-a[im]*sinx;
+                  a[im]=a[il]*sinx+a[im]*cosx;
+                  a[il]=x;
+                }
+                ilr=ilq+i;
+                imr=imq+i;
+                x = (eigenvectors[ilr]*cosx) - (eigenvectors[imr]*sinx);
+                eigenvectors[imr] = (eigenvectors[ilr]*sinx)
+                                    + (eigenvectors[imr]*cosx);
+                eigenvectors[ilr] = x;
+              }
+              x=2.0*a[lm]*sincs;
+              y=a[ll]*cosx2+a[mm]*sinx2-x;
+              x=a[ll]*sinx2+a[mm]*cosx2+x;
+              a[lm]=(a[ll]-a[mm])*sincs+a[lm]*(cosx2-sinx2);
+              a[ll]=y;
+              a[mm]=x;
+            }
+            m++;
+          }
+          l++;
+        }
+      }
+    }
+  }
+  k=0;
+  for (i=0; i<n-1; i++) {
+    im=i;
+    km=k;
+    am=a[k];
+    l=0;
+    for (j=0; j<n; j++) {
+      if (j>i && a[l]>am) {
+        im=j;
+        km=l;
+        am=a[l];
+      }
+      l+=j+2;
+    }
+    if (im!=i) {
+      a[km]=a[k];
+      a[k]=am;
+      l=n*i;
+      m=n*im;
+      for (j=0; j<n; j++) {
+        am=eigenvectors[l];
+        eigenvectors[l++] = eigenvectors[m];
+        eigenvectors[m++] = am;
+      }
+    }
+    k+=i+2;
+  }
+  // place sorted eigenvalues into the matrix_vector structure
+  for (j=0, k=0; j<n; j++) {
+    eigenvalues[j]=a[k];
+    k+=j+2;
+  }
+  this.vectors = eigenvectors;
+  this.values = eigenvalues;
+}
+
+// 4x4 transformation matrix for a unit sphere
+// adapted (with minimal changes) from gltbx/quadrics.h in CCTBX
+// (original code by Luc Bourhis)
+function ellipsoid_to_sphere_transform (uij, center) {
+  var es = new eigensystem_from_uij(uij);
+  var e = es.vectors;
+  var e0 = [ e[0], e[1], e[2] ];
+  var e1 = [ e[3], e[4], e[5] ];
+  var e2 = [
+    e0[1] * e1[2] - e1[1] * e0[2],
+    e0[2] * e1[0] - e1[2] * e0[0],
+    e0[0] * e1[1] - e1[0] * e0[1]
+  ];
+  for (var i = 0; i < 3; i++) {
+    e0[i] *= Math.sqrt(es.values[0]);
+    e1[i] *= Math.sqrt(es.values[1]);
+    e2[i] *= Math.sqrt(es.values[2]);
+  }
+  var m = new Array(16);
+  m[0] = e0[0]; m[4] = e1[0]; m[ 8] = e2[0]; m[12] = center[0];
+  m[1] = e0[1]; m[5] = e1[1]; m[ 9] = e2[1]; m[13] = center[1];
+  m[2] = e0[2]; m[6] = e1[2]; m[10] = e2[2]; m[14] = center[2];
+  m[3] =   0  ; m[7] =   0  ; m[11] =   0  ; m[15] =     1    ;
+  return m;
+}
+
 // Exports
 return {
 	'UnitCell': UnitCell,
@@ -410,6 +568,7 @@ return {
 	'midpoint': midpoint,
 	'distance': distance,
 	'deg2rad': deg2rad,
+  'ellipsoid_to_sphere_transform': ellipsoid_to_sphere_transform,
 	// 'fractionalize': fractionalize,
 	// 'orthogonalize': orthogonalize,
 	// 'unit_cell_as_str': unit_cell_as_str,

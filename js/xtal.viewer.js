@@ -537,7 +537,7 @@ function setup_model_dat_gui (viewer, model) {
     viewer.toggle_model_visibility(model, value);
   });
   var repType = model_gui.add(model.parameters, "render_style",
-    ["lines", "trace", "trace+ligands", "ribbon"]).name("Draw as").listen();
+    ["lines", "trace", "trace+ligands", "ribbon", "ellipsoids"]).name("Draw as").listen();
   repType.onChange(function(value) {
     viewer.redraw_model(model);
   });
