@@ -76,8 +76,9 @@ function XtalViewer (element_id, element, draw_gui, draw_axes) {
   this.last_center = [controls.target.x, controls.target.y, controls.target.z];
 
   var light = new THREE.PointLight(0xffffff);
-  light.position.set(0,10,0);
+  light.position.set(camera.position.x, camera.position.y, camera.position.z);
   scene.add(light);
+  this.light = light;
   origin = new Axis(0.5, [0,0,0], true);
   scene.add(origin);
 
@@ -361,6 +362,8 @@ function OnChange (viewer) {
   viewer.scene.fog.far = Math.min(dxyz * 1.2, dxyz+10);
   viewer.camera.near = dxyz * 0.8;
   viewer.camera.far = dxyz * 2;
+  viewer.light.position.set(viewer.camera.position.x,
+    viewer.camera.position.y, viewer.camera.position.z);
   viewer.camera.updateProjectionMatrix();
   viewer.redrawAxes();
   //redrawMaps();

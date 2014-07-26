@@ -154,7 +154,10 @@ function modelDisplayObject (model, name) {
       ];
     } else if (this.parameters["render_style"] == "ellipsoids") {
       this.geom_objects = [
-        drawEllipsoids(this.model)
+        new Bonds(this.model, this.parameters["color_scheme"],
+          this.parameters["carbon_color"], this.parameters["hydrogens"]),
+        drawEllipsoids(this.model, this.parameters["color_scheme"],
+          this.parameters["carbon_color"], this.parameters["hydrogens"], false)
       ];
     }
   }
@@ -576,7 +579,8 @@ function RibbonSegment (c_alpha, last_c_alpha) {
 // XXX one possible optimization would be to only display ellipsoids within
 // the same radius as the map - however this might annoy people who want to
 // view TLS groups collectively, etc.
-function drawEllipsoids (model, draw_hydrogens, color_style) {
+function drawEllipsoids (model, color_style, carbon_color, draw_hydrogens,
+    solid_material) {
   var colors = [];
   var visible_atoms = [];
   var atoms = model.atoms();
@@ -589,13 +593,25 @@ function drawEllipsoids (model, draw_hydrogens, color_style) {
   } else {
     visible_atoms = atoms;
   }
-  // XXX probably need more flexibility here
-  colors = color_by_bfactor(visible_atoms, draw_hydrogens);
-  var geometry = new THREE.Geometry(); /*
-    new THREE.Geometry(),
-    new THREE.MeshBasicMaterial() );*/
-  var materials = [];
-  var sphere_geometry = new THREE.SphereGeometry( 1, 8, 6 );
+  if ((! color_style) || (color_style == "element")) {
+    colors = color_by_element(visible_atoms, carbon_color, draw_hydrogens);
+  } else if (color_style == "bfactor") {
+    colors = color_by_bfactor(visible_atoms, draw_hydrogens);
+  } else if (color_style == "rainbow") {
+    colors = color_by_index(visible_atoms, draw_hydrogens);
+  } else {
+    console.log("Color style: " + color_style);
+  }
+  var geometry = new THREE.Geometry();
+  var material;
+  if (solid_material) {
+    material = new THREE.MeshPhongMaterial( {
+      vertexColors: true});//, wireframe: true } );
+  } else {
+    material = new THREE.MeshBasicMaterial( {
+      vertexColors: true, wireframe: true } );
+  }
+  var sphere_geometry = new THREE.SphereGeometry( 1, 10, 8 );
   for (var i = 0; i < visible_atoms.length; i++) {
     var atom = visible_atoms[i];
     if (atom.uij == null) continue;
@@ -608,13 +624,14 @@ function drawEllipsoids (model, draw_hydrogens, color_style) {
       m[2], m[6], m[10], m[14],
       m[3], m[7], m[11], m[15]
     );
-    //sphere_geometry.applyMatrix( transform );
-    var wireframeMaterial = new THREE.MeshBasicMaterial( {
-      color: color, wireframe: true, transparent: false } );
-    materials.push(wireframeMaterial);
+    for (var j = 0; j < sphere_geometry.faces.length; j++) {
+      sphere_geometry.faces[j].color = color;
+    }
     geometry.merge(sphere_geometry, transform, i);
   }
-  var mesh = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials));
+  var mesh = new THREE.Mesh(geometry, material);
+  mesh.geometry.computeFaceNormals();
+  mesh.geometry.computeVertexNormals();
   return mesh; //return geometry;
 }
 
