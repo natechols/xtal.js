@@ -2,6 +2,11 @@
 
 xtal.js PDB & CIF models.
 
+Dependencies:
+  xtal.js
+  xtal.cif.js (implicitly)
+  Three.js (optionally)
+
 Exports:
 	Atom
 	Model
@@ -344,6 +349,7 @@ function Atom (pdb_line) {
   this.b = 0;
   this._u_iso = null;
   this.uij = null;
+  this._sphere_transform = null; // cached for anisotropic ellipsoid drawing
   this.element = "";
   this.charge = 0;
   this.i_seq = null;
@@ -471,6 +477,7 @@ function Atom (pdb_line) {
   this.is_water = function () {
     return this.resname == "HOH";
   }
+  // XXX requires Three.js
   this.as_vec3 = function () {
     return new THREE.Vector3().fromArray(this.xyz);
   }
@@ -508,6 +515,17 @@ function Atom (pdb_line) {
       }
     }
     return false;
+  }
+
+  // 4x4 matrix used to display thermal ellipsoids; since this involves
+  // significant overhead due to calculation of eigenvalues and eigenvectors,
+  // the result is cached.
+  this.ellipsoid_to_sphere_transform = function () {
+    if (this._sphere_transform == null) {
+      this._sphere_transform = xtal.ellipsoid_to_sphere_transform(this.uij,
+        this.xyz);
+    }
+    return this._sphere_transform;
   }
 }
 

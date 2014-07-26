@@ -112,8 +112,6 @@ function update_map_color (map, value, suffix) {
 // MODEL
 
 function modelDisplayObject (model, name) {
-  this.model = model;
-  this.name = name;
   this.parameters = {
     visible: true,
     render_style: "lines",
@@ -121,25 +119,20 @@ function modelDisplayObject (model, name) {
     carbon_color: "#ffff00",
     hydrogens: (model.source == "monlib")
   };
+  this.model = model;
+  this.name = name;
   this.geom_objects = null; // display object (drawLines, etc.)
   this.selected = null;
   this._ribbon = null;
   this.update_geom = function () {
     if (this.parameters["render_style"] == "lines") {
-      this.geom_objects = [
-        new Bonds(this.model, this.parameters["color_scheme"],
-          this.parameters["carbon_color"], this.parameters["hydrogens"]) ];
+      this.geom_objects = [ new Bonds(this.model, this.parameters), ];
     } else if (this.parameters["render_style"] == "trace") {
-      this.geom_objects = [
-        new Trace(this.model, this.parameters["color_scheme"],
-          this.parameters["carbon_color"]) ];
+      this.geom_objects = [ new Trace(this.model, this.parameters) ];
     } else if (this.parameters["render_style"] == "trace+ligands") {
       this.geom_objects = [
-        new Trace(this.model, this.parameters["color_scheme"],
-          this.parameters["carbon_color"]),
-        new Bonds(this.model, this.parameters["color_scheme"],
-          this.parameters["carbon_color"], this.parameters["hydrogens"],
-          true)
+        new Trace(this.model, this.parameters),
+        new Bonds(this.model, this.parameters)
         // TODO spheres for ions
       ];
     } else if (this.parameters["render_style"] == "ribbon") {
@@ -148,16 +141,12 @@ function modelDisplayObject (model, name) {
       }
       this.geom_objects = [
         new Ribbon(this.model, this._ribbon),
-        new Bonds(this.model, this.parameters["color_scheme"],
-          this.parameters["carbon_color"], this.parameters["hydrogens"],
-          true)
+        new Bonds(this.model, this.parameters)
       ];
     } else if (this.parameters["render_style"] == "ellipsoids") {
+      anisous = new Ellipsoids(this.model, this.parameters)
       this.geom_objects = [
-        new Bonds(this.model, this.parameters["color_scheme"],
-          this.parameters["carbon_color"], this.parameters["hydrogens"]),
-        drawEllipsoids(this.model, this.parameters["color_scheme"],
-          this.parameters["carbon_color"], this.parameters["hydrogens"], false)
+        new Bonds(this.model, this.parameters), anisous
       ];
     }
   }
@@ -244,8 +233,12 @@ function color_by_element (atoms, carbon_color, draw_hydrogens) {
 }
 
 // BONDED REPRESENTATION
-Bonds = function drawLines (model, color_style, carbon_color,
-    draw_hydrogens, ligands_only) {
+Bonds = function drawLines (model, params) {
+  var color_style = params.color_scheme;
+  var draw_hydrogens = params.hydrogens;
+  var ligands_only = params.render_style == "trace+ligands";
+  var carbon_color = params.carbon_color;
+  var draw_nonbonded = params.render_style != "ellipsoids";
   var colors = [];
   var visible_atoms = [];
   var atoms = model.atoms();
@@ -284,7 +277,7 @@ Bonds = function drawLines (model, color_style, carbon_color,
     if (ligands_only) {
       if (! ligand_flags[i]) continue;
     }
-    if (bonds.length == 0) { // nonbonded, draw star
+    if ((bonds.length == 0) && (draw_nonbonded)) { // nonbonded, draw star
       draw_isolated_atom(atom, geometry, color);
     } else { // bonded, draw lines
       draw_bonded_atom(geometry, color, model, bonds, atom, draw_hydrogens,
@@ -322,7 +315,9 @@ Highlights = function drawHighlights (model, atom_selection) {
 Highlights.prototype=Object.create(THREE.Line.prototype);
 
 // C-ALPHA / PHOSPHATE BACKBONE TRACE
-Trace = function drawTrace (model, color_style, carbon_color) {
+Trace = function drawTrace (model, params) {
+  var color_style = params.color_scheme;
+  var carbon_color = params.carbon_color;
   var segments = model.extract_trace();
   var colors = [];
   var visible_atoms = [];
@@ -574,13 +569,13 @@ function RibbonSegment (c_alpha, last_c_alpha) {
 
 //----------------------------------------------------------------------
 // ADP ellipsoids
-// TODO should probably be combined with bond display, and inherit colors
-// FIXME this could be a great deal faster
-// XXX one possible optimization would be to only display ellipsoids within
-// the same radius as the map - however this might annoy people who want to
-// view TLS groups collectively, etc.
-function drawEllipsoids (model, color_style, carbon_color, draw_hydrogens,
-    solid_material) {
+// FIXME is it possible to make the insides darker?  right now the effect of
+// clipping an ellipsoid is somewhat confusing
+Ellipsoids = function drawEllipsoids (model, params) {
+  var color_style = params.color_scheme;
+  var carbon_color = params.carbon_color;
+  var draw_hydrogens = params.hydrogens;
+  var solid_material = true;
   var colors = [];
   var visible_atoms = [];
   var atoms = model.atoms();
@@ -604,9 +599,13 @@ function drawEllipsoids (model, color_style, carbon_color, draw_hydrogens,
   }
   var geometry = new THREE.Geometry();
   var material;
+  var material_inside;
   if (solid_material) {
     material = new THREE.MeshPhongMaterial( {
       vertexColors: true});//, wireframe: true } );
+    material.side = THREE.DoubleSide;
+    /*material_inside = new THREE.MeshPhongMaterial( {
+      vertexColors: true, ambient: 0x000000, specular: 0x101010 });*/
   } else {
     material = new THREE.MeshBasicMaterial( {
       vertexColors: true, wireframe: true } );
@@ -616,7 +615,7 @@ function drawEllipsoids (model, color_style, carbon_color, draw_hydrogens,
     var atom = visible_atoms[i];
     if (atom.uij == null) continue;
     var color = colors[i];
-    var m = xtal.ellipsoid_to_sphere_transform(atom.uij, atom.xyz);
+    var m = atom.ellipsoid_to_sphere_transform();
     // I think the input transform (m) is column-major - we need row-major
     var transform = new THREE.Matrix4(
       m[0], m[4], m[8], m[12],
@@ -626,14 +625,23 @@ function drawEllipsoids (model, color_style, carbon_color, draw_hydrogens,
     );
     for (var j = 0; j < sphere_geometry.faces.length; j++) {
       sphere_geometry.faces[j].color = color;
+      /*if (sphere_geometry.faces[j].normal.z == 1) {
+        sphere_geometry.faces[j].materialIndex = 1;
+      }*/
     }
     geometry.merge(sphere_geometry, transform, i);
   }
-  var mesh = new THREE.Mesh(geometry, material);
-  mesh.geometry.computeFaceNormals();
-  mesh.geometry.computeVertexNormals();
-  return mesh; //return geometry;
-}
+  var combined_material;
+  if (false) { //solid_material) {
+    var materials = [ material, material_inside ];
+    combined_material = new THREE.MeshFaceMaterial(materials);
+  } else {
+    combined_material = material;
+  }
+  var mesh = new THREE.Mesh(geometry, combined_material);
+  THREE.Mesh.call(this, geometry, material);
+};
+Ellipsoids.prototype=Object.create(THREE.Mesh.prototype);
 
 //----------------------------------------------------------------------
 // MISC DISPLAY OBJECTS
