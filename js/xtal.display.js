@@ -141,7 +141,7 @@ function modelDisplayObject (model, name) {
       }
       this.geom_objects = [
         new Ribbon(this.model, this._ribbon),
-        new Bonds(this.model, this.parameters)
+        new Bonds(this.model, this.parameters, true)
       ];
     } else if (this.parameters["render_style"] == "ellipsoids") {
       anisous = new Ellipsoids(this.model, this.parameters)
@@ -233,10 +233,12 @@ function color_by_element (atoms, carbon_color, draw_hydrogens) {
 }
 
 // BONDED REPRESENTATION
-Bonds = function drawLines (model, params) {
+Bonds = function drawLines (model, params, ligands_only) {
   var color_style = params.color_scheme;
   var draw_hydrogens = params.hydrogens;
-  var ligands_only = params.render_style == "trace+ligands";
+  if (ligands_only == null) {
+    ligands_only = params.render_style == "trace+ligands";
+  }
   var carbon_color = params.carbon_color;
   var draw_nonbonded = params.render_style != "ellipsoids";
   var colors = [];
@@ -422,6 +424,8 @@ Ribbon.prototype=Object.create(THREE.Line.prototype);
 
 function RibbonGeometry (model) {
   this.c_alpha_i_seqs = [];
+  this.o_i_seqs = [];
+  this.c_i_seqs = [];
   this._segments = [];
   var chains = model.chains();
   var n_c_alpha = 0;
@@ -438,7 +442,9 @@ function RibbonGeometry (model) {
         continue;
       }
       var c_alpha = residue.get_atom("CA");
-      if (c_alpha == null) {
+      var c_atom = residue.get_atom("C");
+      var o_atom = residue.get_atom("O");
+      if ((c_alpha == null) || (c_atom == null) || (o_atom == null)) {
         last_c_alpha = null;
         continue;
       }
@@ -450,10 +456,11 @@ function RibbonGeometry (model) {
         }
       }
       if (current_segment == null) {
-        current_segment = new RibbonSegment(c_alpha, last_c_alpha);
+        current_segment = new RibbonSegment(c_alpha, last_c_alpha, c_atom,
+          o_atom);
         this._segments.push(current_segment);
       } else {
-        current_segment.add_residue(c_alpha);
+        current_segment.add_residue(c_alpha, c_atom, o_atom);
       }
       last_c_alpha = c_alpha;
     }
@@ -467,18 +474,24 @@ function RibbonGeometry (model) {
   }
 }
 
-function RibbonSegment (c_alpha, last_c_alpha) {
+function RibbonSegment (c_alpha, last_c_alpha, c_atom, o_atom, ribbon_width) {
+  if (! ribbon_width) {
+    ribbon_width = 1.0;
+  }
   this._last_site = null
   this._anchors = [ c_alpha.as_vec3() ];
   this._indices = [ c_alpha.i_seq ];
+  this._peptide_vectors = [ o_atom.as_vec3().sub(c_atom.as_vec3()) ];
   this._vertices = null;
   this._vertex_i_seqs = [];
+  this._ribbon_vertex_vectors = null;
   if (last_c_alpha != null) {
     this._last_site = last_c_alpha.as_vec3();
   }
-  this.add_residue = function (c_alpha) {
+  this.add_residue = function (c_alpha, c_atom, o_atom) {
     this._anchors.push(c_alpha.as_vec3());
     this._indices.push(c_alpha.i_seq);
+    this._peptide_vectors.push(o_atom.as_vec3().sub(c_atom.as_vec3()));
   }
   this.construct_geometry = function (smoothness) {
     var n_sites = this._anchors.length;
@@ -498,71 +511,109 @@ function RibbonSegment (c_alpha, last_c_alpha) {
     var indices = this._indices;
     // TODO next site
     var t = smoothness;
-    var vertices = [];
-    var vertex_i_seqs = [];
-    for (var i = 1; i < n_sites-1; i++) {
-      var v0 = anchors[i-1];
-      var v1 = anchors[i];
-      var v2 = anchors[i+1];
-      var v3 = anchors[i+2];
-      var v10 = v1.clone().sub(v0).normalize();
-      var v23 = v2.clone().sub(v3).normalize();
-      var v05 = v0.clone().add(v1).multiplyScalar(0.5);
-      var _v15 = v1.clone().add(v2).multiplyScalar(0.5);
-      var v25 = v2.clone().add(v3).multiplyScalar(0.5);
-      var v15 = _v15.add(v10.clone().add(v23).multiplyScalar(0.5));
-      if (i == 1) {
-        vertices.push(v05);
-        vertex_i_seqs.push(indices[0]);
-        var new_vertices_0 = interpolate(v0,v05,v1,v15,t);
-        //vertices.push.apply(vertices, new_vertices_0);
-        for (var k = 0; k < new_vertices_0.length; k++) {
-          vertices.push(new_vertices_0[k]);
-          vertex_i_seqs.push(indices[i]);
+    var vertices_ = [];
+    var vertex_i_seqs_ = [];
+    var ribbon_vectors = [];
+    for (var k = -4; k <= 4; k++) {
+      var offset = (ribbon_width / 2) * k / 4.0;
+      var vertex_i_seqs = [];
+      var vertices = [];
+      var prev_vec = this._peptide_vectors[0].clone();
+      var prev_vec_inverted = false;
+      for (var i = 1; i < n_sites-1; i++) {
+        var pep_vec = this._peptide_vectors[i].clone();
+        var next_vec = this._peptide_vectors[i+1].clone();
+        var angle1 = pep_vec.angleTo(prev_vec) * 180 / Math.PI;
+        if (angle1 > 90) {
+          pep_vec.multiplyScalar(-1.0);
         }
-      }
-      vertices.push(anchors[i]);
-      vertex_i_seqs.push(indices[i]);
-      var new_vertices_1 = interpolate(v05,v1,v15,v2,t);
-      //vertices.push.apply(vertices, new_vertices_1);
-      for (var k = 0; k < new_vertices_1.length; k++) {
-        vertices.push(new_vertices_1[k]);
+        var pep1 = pep_vec.clone().add(prev_vec).normalize();
+        var angle2 = pep_vec.angleTo(next_vec) * 180 / Math.PI;
+        if (angle2 > 90) {
+          next_vec.multiplyScalar(-1.0);
+        }
+        var pep2 = pep_vec.clone().add(next_vec).normalize();
+        prev_vec = pep_vec; // this._peptide_vectors[i].clone();
+        var pep_vec_offset1 = pep1.multiplyScalar(offset);
+        var pep_vec_offset2 = pep2.multiplyScalar(offset);
+        var v0 = anchors[i-1].clone().add(pep_vec_offset1);
+        var v1 = anchors[i].clone().add(pep_vec_offset1);
+        var v2 = anchors[i+1].clone().add(pep_vec_offset2);
+        var v3 = anchors[i+2].clone().add(pep_vec_offset2);
+        /*if (! prev_vec_inverted) {
+          
+        }*/
+        var v10 = v1.clone().sub(v0).normalize();
+        var v23 = v2.clone().sub(v3).normalize();
+        var v05 = v0.clone().add(v1).multiplyScalar(0.5);
+        var _v15 = v1.clone().add(v2).multiplyScalar(0.5);
+        var v25 = v2.clone().add(v3).multiplyScalar(0.5);
+        var v15 = _v15.add(v10.clone().add(v23).multiplyScalar(0.5));
+        if (i == 1) {
+          vertices.push(v05);
+          ribbon_vectors.push(pep_vec);
+          vertex_i_seqs.push(indices[0]);
+          var new_vertices_0 = interpolate(v0,v05,v1,v15,t);
+          //vertices.push.apply(vertices, new_vertices_0);
+          for (var j = 0; j < new_vertices_0.length; j++) {
+            vertices.push(new_vertices_0[j]);
+            ribbon_vectors.push(pep_vec);
+            vertex_i_seqs.push(indices[i]);
+          }
+        }
+        vertices.push(v1);
+        ribbon_vectors.push(pep_vec);
         vertex_i_seqs.push(indices[i]);
-      }
-      vertices.push(v15);
-      vertex_i_seqs.push(indices[i]);
-      var new_vertices_2 = interpolate(v1,v15,v2,v25,t);
-      //vertices.push.apply(vertices, new_vertices_2);
-      for (var k = 0; k < new_vertices_2.length; k++) {
-        vertices.push(new_vertices_2[k]);
-        vertex_i_seqs.push(indices[i+1]);
-      }
-      if (i == (n_sites - 1)) {
-        var new_vertices_3 = interpolate(v15, v2,v25,v3,t);
-        vertices.push.apply(vertices, new_vertices_3);
-        for (var k = 0; k < new_vertices_3.length; k++) {
-          vertices.push(new_vertices_3[k]);
-          vertex_i_seqs.push(indices[n_sites]);
+        var new_vertices_1 = interpolate(v05,v1,v15,v2,t);
+        //vertices.push.apply(vertices, new_vertices_1);
+        for (var j = 0; j < new_vertices_1.length; j++) {
+          vertices.push(new_vertices_1[j]);
+          vertex_i_seqs.push(indices[i]);
+          ribbon_vectors.push(pep_vec);
+        }
+        vertices.push(v15);
+        ribbon_vectors.push(pep_vec);
+        vertex_i_seqs.push(indices[i]);
+        var new_vertices_2 = interpolate(v1,v15,v2,v25,t);
+        //vertices.push.apply(vertices, new_vertices_2);
+        for (var j = 0; j < new_vertices_2.length; j++) {
+          vertices.push(new_vertices_2[j]);
+          vertex_i_seqs.push(indices[i+1]);
+          ribbon_vectors.push(pep_vec);
+        }
+        if (i == (n_sites - 1)) {
+          var new_vertices_3 = interpolate(v15, v2,v25,v3,t);
+          //vertices.push.apply(vertices, new_vertices_3);
+          for (var j = 0; j < new_vertices_3.length; j++) {
+            vertices.push(new_vertices_3[j]);
+            vertex_i_seqs.push(indices[n_sites]);
+            ribbon_vectors.push(pep_vec);
+          }
         }
       }
+      if (vertices.length != vertex_i_seqs.length) {
+        throw Error("Array size mismatch:",vertices.length,
+          vertex_i_seqs.length);
+      }
+      vertices_.push(vertices);
+      vertex_i_seqs_.push(vertex_i_seqs);
     }
-    if (vertices.length != vertex_i_seqs.length) {
-      throw Error("Array size mismatch:",vertices.length,vertex_i_seqs.length);
-    }
-    this._vertices = vertices;
-    this._vertex_i_seqs = vertex_i_seqs;
+    this._vertices = vertices_;
+    this._vertex_i_seqs = vertex_i_seqs_;
+    this._ribbon_vertex_vectors = ribbon_vectors;
   }
   this.draw_ribbon = function (geometry, colors) {
     if (this._vertices == null) {
       this.construct_geometry(8);
     }
-    //console.log("DRAWING SEGMENT WITH " + this._vertices.length + " VERTICES");
-    vertices = this._vertices;
-    indices = this._vertex_i_seqs;
-    for (var i = 1; i < vertices.length; i++) {
-      var j = indices[i];
-      geometry.vertices.push(vertices[i-1], vertices[i]);
-      geometry.colors.push(colors[j], colors[j]);
+    for (var k = 0; k < 9; k++) {
+      vertices = this._vertices[k];
+      indices = this._vertex_i_seqs[k];
+      for (var i = 1; i < vertices.length; i++) {
+        var j = indices[i];
+        geometry.vertices.push(vertices[i-1], vertices[i]);
+        geometry.colors.push(colors[j], colors[j]);
+      }
     }
   }
 }
