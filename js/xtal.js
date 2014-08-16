@@ -2,8 +2,85 @@ var xtal = (function(module) {
 
 //----------------------------------------------------------------------
 // SYMMETRY OPERATORS
-function Symops () {
-  this.ops = [];
+function Symop (op_str) {
+  this.op_str = op_str;
+  this.toString = function () { return this.op_str; };
+  this.is_unit_mx = function () { return (this.op_str == "x,y,z"); };
+  var fields = op_str.split(",");
+  if (fields.length != 3) {
+    throw Error("Invalid symop format '" + op_str + "'");
+  }
+  this.r = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ];
+  this.t = [ 0.0, 0.0, 0.0 ];
+  for (var i = 0; i < 3; i++) {
+    var op = fields[i];
+    var chars = op.split("");
+    var mult = 1;
+    var j = 0;
+    while (j < chars.length) {
+      // first check for + or - signs and increment if found
+      switch (chars[j]) {
+        case "+" :
+          mult = 1;
+          j++;
+          break;
+        case "-" :
+          mult = -1;
+          j++;
+          break;
+      }
+      // now we look for either an axis label (x,y,z), which specifies changes
+      // to the rotation matrix, or the start of a fractional expression
+      // (e.g. 1/2), which specifies translations.  since I am only expecting
+      // space group symmetry operators this ends up being much simpler than
+      // the rt_mx string parsing in cctbx.sgtbx.
+      var next = chars[j];
+      switch (next) {
+        case "x" :
+          this.r[(i*3)] = mult;
+          break;
+        case "y" :
+          this.r[(i*3)+1] = mult;
+          break;
+        case "z" :
+          this.r[(i*3)+2] = mult;
+          break;
+        case "1":
+        case "2":
+        case "3":
+        case "4":
+        case "5":
+          var div = chars[j+1];
+          if (div != "/") {
+            throw Error("Uninterpretable symop '" + op_str +"'");
+          }
+          var num = parseInt(next);
+          var denom = parseInt(chars[j+2]);
+          var frac = mult * num / denom;
+          this.t[i] += frac;
+          break;
+        default:
+          throw Error("Unexpected character '" + next + "' in symop '" +
+                      op_str + "'");
+          break;
+      }
+      j++;
+    }
+  }
+}
+
+function SpaceGroup (symbol) {
+  this.symbol = symbol
+  this.number = space_group_table["lookup"][symbol];
+  if (! this.number) {
+    throw Error("Can't identify space group '" + symbol + "'");
+  }
+  var space_group_info = space_group_table["groups"][this.number - 1];
+  var symops_raw = space_group_info["operators"];
+  this.symops = [];
+  for (var i = 0; i < symops_raw.length; i++) {
+    this.symops.push( new Symop(symops_raw[i]) );
+  }
 }
 
 //----------------------------------------------------------------------
