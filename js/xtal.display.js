@@ -112,8 +112,6 @@ function update_map_color (map, value, suffix) {
 // MODEL
 
 function modelDisplayObject (model, name) {
-  this.model = model;
-  this.name = name;
   this.parameters = {
     visible: true,
     render_style: "lines",
@@ -121,25 +119,20 @@ function modelDisplayObject (model, name) {
     carbon_color: "#ffff00",
     hydrogens: (model.source == "monlib")
   };
+  this.model = model;
+  this.name = name;
   this.geom_objects = null; // display object (drawLines, etc.)
   this.selected = null;
   this._ribbon = null;
   this.update_geom = function () {
     if (this.parameters["render_style"] == "lines") {
-      this.geom_objects = [
-        new Bonds(this.model, this.parameters["color_scheme"],
-          this.parameters["carbon_color"], this.parameters["hydrogens"]) ];
+      this.geom_objects = [ new Bonds(this.model, this.parameters), ];
     } else if (this.parameters["render_style"] == "trace") {
-      this.geom_objects = [
-        new Trace(this.model, this.parameters["color_scheme"],
-          this.parameters["carbon_color"]) ];
+      this.geom_objects = [ new Trace(this.model, this.parameters) ];
     } else if (this.parameters["render_style"] == "trace+ligands") {
       this.geom_objects = [
-        new Trace(this.model, this.parameters["color_scheme"],
-          this.parameters["carbon_color"]),
-        new Bonds(this.model, this.parameters["color_scheme"],
-          this.parameters["carbon_color"], this.parameters["hydrogens"],
-          true)
+        new Trace(this.model, this.parameters),
+        new Bonds(this.model, this.parameters)
         // TODO spheres for ions
       ];
     } else if (this.parameters["render_style"] == "ribbon") {
@@ -148,9 +141,12 @@ function modelDisplayObject (model, name) {
       }
       this.geom_objects = [
         new Ribbon(this.model, this._ribbon),
-        new Bonds(this.model, this.parameters["color_scheme"],
-          this.parameters["carbon_color"], this.parameters["hydrogens"],
-          true)
+        new Bonds(this.model, this.parameters, true)
+      ];
+    } else if (this.parameters["render_style"] == "ellipsoids") {
+      anisous = new Ellipsoids(this.model, this.parameters)
+      this.geom_objects = [
+        new Bonds(this.model, this.parameters), anisous
       ];
     }
   }
@@ -237,8 +233,14 @@ function color_by_element (atoms, carbon_color, draw_hydrogens) {
 }
 
 // BONDED REPRESENTATION
-Bonds = function drawLines (model, color_style, carbon_color,
-    draw_hydrogens, ligands_only) {
+Bonds = function drawLines (model, params, ligands_only) {
+  var color_style = params.color_scheme;
+  var draw_hydrogens = params.hydrogens;
+  if (ligands_only == null) {
+    ligands_only = params.render_style == "trace+ligands";
+  }
+  var carbon_color = params.carbon_color;
+  var draw_nonbonded = params.render_style != "ellipsoids";
   var colors = [];
   var visible_atoms = [];
   var atoms = model.atoms();
@@ -277,7 +279,7 @@ Bonds = function drawLines (model, color_style, carbon_color,
     if (ligands_only) {
       if (! ligand_flags[i]) continue;
     }
-    if (bonds.length == 0) { // nonbonded, draw star
+    if ((bonds.length == 0) && (draw_nonbonded)) { // nonbonded, draw star
       draw_isolated_atom(atom, geometry, color);
     } else { // bonded, draw lines
       draw_bonded_atom(geometry, color, model, bonds, atom, draw_hydrogens,
@@ -315,7 +317,9 @@ Highlights = function drawHighlights (model, atom_selection) {
 Highlights.prototype=Object.create(THREE.Line.prototype);
 
 // C-ALPHA / PHOSPHATE BACKBONE TRACE
-Trace = function drawTrace (model, color_style, carbon_color) {
+Trace = function drawTrace (model, params) {
+  var color_style = params.color_scheme;
+  var carbon_color = params.carbon_color;
   var segments = model.extract_trace();
   var colors = [];
   var visible_atoms = [];
@@ -420,6 +424,8 @@ Ribbon.prototype=Object.create(THREE.Line.prototype);
 
 function RibbonGeometry (model) {
   this.c_alpha_i_seqs = [];
+  this.o_i_seqs = [];
+  this.c_i_seqs = [];
   this._segments = [];
   var chains = model.chains();
   var n_c_alpha = 0;
@@ -436,7 +442,9 @@ function RibbonGeometry (model) {
         continue;
       }
       var c_alpha = residue.get_atom("CA");
-      if (c_alpha == null) {
+      var c_atom = residue.get_atom("C");
+      var o_atom = residue.get_atom("O");
+      if ((c_alpha == null) || (c_atom == null) || (o_atom == null)) {
         last_c_alpha = null;
         continue;
       }
@@ -448,10 +456,11 @@ function RibbonGeometry (model) {
         }
       }
       if (current_segment == null) {
-        current_segment = new RibbonSegment(c_alpha, last_c_alpha);
+        current_segment = new RibbonSegment(c_alpha, last_c_alpha, c_atom,
+          o_atom);
         this._segments.push(current_segment);
       } else {
-        current_segment.add_residue(c_alpha);
+        current_segment.add_residue(c_alpha, c_atom, o_atom);
       }
       last_c_alpha = c_alpha;
     }
@@ -465,18 +474,24 @@ function RibbonGeometry (model) {
   }
 }
 
-function RibbonSegment (c_alpha, last_c_alpha) {
+function RibbonSegment (c_alpha, last_c_alpha, c_atom, o_atom, ribbon_width) {
+  if (! ribbon_width) {
+    ribbon_width = 1.0;
+  }
   this._last_site = null
   this._anchors = [ c_alpha.as_vec3() ];
   this._indices = [ c_alpha.i_seq ];
+  this._peptide_vectors = [ o_atom.as_vec3().sub(c_atom.as_vec3()) ];
   this._vertices = null;
   this._vertex_i_seqs = [];
+  this._ribbon_vertex_vectors = null;
   if (last_c_alpha != null) {
     this._last_site = last_c_alpha.as_vec3();
   }
-  this.add_residue = function (c_alpha) {
+  this.add_residue = function (c_alpha, c_atom, o_atom) {
     this._anchors.push(c_alpha.as_vec3());
     this._indices.push(c_alpha.i_seq);
+    this._peptide_vectors.push(o_atom.as_vec3().sub(c_atom.as_vec3()));
   }
   this.construct_geometry = function (smoothness) {
     var n_sites = this._anchors.length;
@@ -496,74 +511,188 @@ function RibbonSegment (c_alpha, last_c_alpha) {
     var indices = this._indices;
     // TODO next site
     var t = smoothness;
-    var vertices = [];
-    var vertex_i_seqs = [];
-    for (var i = 1; i < n_sites-1; i++) {
-      var v0 = anchors[i-1];
-      var v1 = anchors[i];
-      var v2 = anchors[i+1];
-      var v3 = anchors[i+2];
-      var v10 = v1.clone().sub(v0).normalize();
-      var v23 = v2.clone().sub(v3).normalize();
-      var v05 = v0.clone().add(v1).multiplyScalar(0.5);
-      var _v15 = v1.clone().add(v2).multiplyScalar(0.5);
-      var v25 = v2.clone().add(v3).multiplyScalar(0.5);
-      var v15 = _v15.add(v10.clone().add(v23).multiplyScalar(0.5));
-      if (i == 1) {
-        vertices.push(v05);
-        vertex_i_seqs.push(indices[0]);
-        var new_vertices_0 = interpolate(v0,v05,v1,v15,t);
-        //vertices.push.apply(vertices, new_vertices_0);
-        for (var k = 0; k < new_vertices_0.length; k++) {
-          vertices.push(new_vertices_0[k]);
-          vertex_i_seqs.push(indices[i]);
+    var vertices_ = [];
+    var vertex_i_seqs_ = [];
+    var ribbon_vectors = [];
+    for (var k = -4; k <= 4; k++) {
+      var offset = (ribbon_width / 2) * k / 4.0;
+      var vertex_i_seqs = [];
+      var vertices = [];
+      var prev_vec = this._peptide_vectors[0].clone();
+      var prev_vec_inverted = false;
+      for (var i = 1; i < n_sites-1; i++) {
+        var pep_vec = this._peptide_vectors[i].clone();
+        var next_vec = this._peptide_vectors[i+1].clone();
+        var angle1 = pep_vec.angleTo(prev_vec) * 180 / Math.PI;
+        if (angle1 > 90) {
+          pep_vec.multiplyScalar(-1.0);
         }
-      }
-      vertices.push(anchors[i]);
-      vertex_i_seqs.push(indices[i]);
-      var new_vertices_1 = interpolate(v05,v1,v15,v2,t);
-      //vertices.push.apply(vertices, new_vertices_1);
-      for (var k = 0; k < new_vertices_1.length; k++) {
-        vertices.push(new_vertices_1[k]);
+        var pep1 = pep_vec.clone().add(prev_vec).normalize();
+        var angle2 = pep_vec.angleTo(next_vec) * 180 / Math.PI;
+        if (angle2 > 90) {
+          next_vec.multiplyScalar(-1.0);
+        }
+        var pep2 = pep_vec.clone().add(next_vec).normalize();
+        prev_vec = pep_vec; // this._peptide_vectors[i].clone();
+        var pep_vec_offset1 = pep1.multiplyScalar(offset);
+        var pep_vec_offset2 = pep2.multiplyScalar(offset);
+        var v0 = anchors[i-1].clone().add(pep_vec_offset1);
+        var v1 = anchors[i].clone().add(pep_vec_offset1);
+        var v2 = anchors[i+1].clone().add(pep_vec_offset2);
+        var v3 = anchors[i+2].clone().add(pep_vec_offset2);
+        /*if (! prev_vec_inverted) {
+          
+        }*/
+        var v10 = v1.clone().sub(v0).normalize();
+        var v23 = v2.clone().sub(v3).normalize();
+        var v05 = v0.clone().add(v1).multiplyScalar(0.5);
+        var _v15 = v1.clone().add(v2).multiplyScalar(0.5);
+        var v25 = v2.clone().add(v3).multiplyScalar(0.5);
+        var v15 = _v15.add(v10.clone().add(v23).multiplyScalar(0.5));
+        if (i == 1) {
+          vertices.push(v05);
+          ribbon_vectors.push(pep_vec);
+          vertex_i_seqs.push(indices[0]);
+          var new_vertices_0 = interpolate(v0,v05,v1,v15,t);
+          //vertices.push.apply(vertices, new_vertices_0);
+          for (var j = 0; j < new_vertices_0.length; j++) {
+            vertices.push(new_vertices_0[j]);
+            ribbon_vectors.push(pep_vec);
+            vertex_i_seqs.push(indices[i]);
+          }
+        }
+        vertices.push(v1);
+        ribbon_vectors.push(pep_vec);
         vertex_i_seqs.push(indices[i]);
-      }
-      vertices.push(v15);
-      vertex_i_seqs.push(indices[i]);
-      var new_vertices_2 = interpolate(v1,v15,v2,v25,t);
-      //vertices.push.apply(vertices, new_vertices_2);
-      for (var k = 0; k < new_vertices_2.length; k++) {
-        vertices.push(new_vertices_2[k]);
-        vertex_i_seqs.push(indices[i+1]);
-      }
-      if (i == (n_sites - 1)) {
-        var new_vertices_3 = interpolate(v15, v2,v25,v3,t);
-        vertices.push.apply(vertices, new_vertices_3);
-        for (var k = 0; k < new_vertices_3.length; k++) {
-          vertices.push(new_vertices_3[k]);
-          vertex_i_seqs.push(indices[n_sites]);
+        var new_vertices_1 = interpolate(v05,v1,v15,v2,t);
+        //vertices.push.apply(vertices, new_vertices_1);
+        for (var j = 0; j < new_vertices_1.length; j++) {
+          vertices.push(new_vertices_1[j]);
+          vertex_i_seqs.push(indices[i]);
+          ribbon_vectors.push(pep_vec);
+        }
+        vertices.push(v15);
+        ribbon_vectors.push(pep_vec);
+        vertex_i_seqs.push(indices[i]);
+        var new_vertices_2 = interpolate(v1,v15,v2,v25,t);
+        //vertices.push.apply(vertices, new_vertices_2);
+        for (var j = 0; j < new_vertices_2.length; j++) {
+          vertices.push(new_vertices_2[j]);
+          vertex_i_seqs.push(indices[i+1]);
+          ribbon_vectors.push(pep_vec);
+        }
+        if (i == (n_sites - 1)) {
+          var new_vertices_3 = interpolate(v15, v2,v25,v3,t);
+          //vertices.push.apply(vertices, new_vertices_3);
+          for (var j = 0; j < new_vertices_3.length; j++) {
+            vertices.push(new_vertices_3[j]);
+            vertex_i_seqs.push(indices[n_sites]);
+            ribbon_vectors.push(pep_vec);
+          }
         }
       }
+      if (vertices.length != vertex_i_seqs.length) {
+        throw Error("Array size mismatch:",vertices.length,
+          vertex_i_seqs.length);
+      }
+      vertices_.push(vertices);
+      vertex_i_seqs_.push(vertex_i_seqs);
     }
-    if (vertices.length != vertex_i_seqs.length) {
-      throw Error("Array size mismatch:",vertices.length,vertex_i_seqs.length);
-    }
-    this._vertices = vertices;
-    this._vertex_i_seqs = vertex_i_seqs;
+    this._vertices = vertices_;
+    this._vertex_i_seqs = vertex_i_seqs_;
+    this._ribbon_vertex_vectors = ribbon_vectors;
   }
   this.draw_ribbon = function (geometry, colors) {
     if (this._vertices == null) {
       this.construct_geometry(8);
     }
-    //console.log("DRAWING SEGMENT WITH " + this._vertices.length + " VERTICES");
-    vertices = this._vertices;
-    indices = this._vertex_i_seqs;
-    for (var i = 1; i < vertices.length; i++) {
-      var j = indices[i];
-      geometry.vertices.push(vertices[i-1], vertices[i]);
-      geometry.colors.push(colors[j], colors[j]);
+    for (var k = 0; k < 9; k++) {
+      vertices = this._vertices[k];
+      indices = this._vertex_i_seqs[k];
+      for (var i = 1; i < vertices.length; i++) {
+        var j = indices[i];
+        geometry.vertices.push(vertices[i-1], vertices[i]);
+        geometry.colors.push(colors[j], colors[j]);
+      }
     }
   }
 }
+
+//----------------------------------------------------------------------
+// ADP ellipsoids
+// FIXME is it possible to make the insides darker?  right now the effect of
+// clipping an ellipsoid is somewhat confusing
+Ellipsoids = function drawEllipsoids (model, params) {
+  var color_style = params.color_scheme;
+  var carbon_color = params.carbon_color;
+  var draw_hydrogens = params.hydrogens;
+  var solid_material = true;
+  var colors = [];
+  var visible_atoms = [];
+  var atoms = model.atoms();
+  if ((! draw_hydrogens) && (model.has_hydrogens)) {
+    for (var i = 0; i < atoms.length; i++) {
+      if (atoms[i].element != "H") {
+        visible_atoms.push(atoms[i]);
+      }
+    }
+  } else {
+    visible_atoms = atoms;
+  }
+  if ((! color_style) || (color_style == "element")) {
+    colors = color_by_element(visible_atoms, carbon_color, draw_hydrogens);
+  } else if (color_style == "bfactor") {
+    colors = color_by_bfactor(visible_atoms, draw_hydrogens);
+  } else if (color_style == "rainbow") {
+    colors = color_by_index(visible_atoms, draw_hydrogens);
+  } else {
+    console.log("Color style: " + color_style);
+  }
+  var geometry = new THREE.Geometry();
+  var material;
+  var material_inside;
+  if (solid_material) {
+    material = new THREE.MeshPhongMaterial( {
+      vertexColors: true});//, wireframe: true } );
+    material.side = THREE.DoubleSide;
+    /*material_inside = new THREE.MeshPhongMaterial( {
+      vertexColors: true, ambient: 0x000000, specular: 0x101010 });*/
+  } else {
+    material = new THREE.MeshBasicMaterial( {
+      vertexColors: true, wireframe: true } );
+  }
+  var sphere_geometry = new THREE.SphereGeometry( 1, 10, 8 );
+  for (var i = 0; i < visible_atoms.length; i++) {
+    var atom = visible_atoms[i];
+    if (atom.uij == null) continue;
+    var color = colors[i];
+    var m = atom.ellipsoid_to_sphere_transform();
+    // I think the input transform (m) is column-major - we need row-major
+    var transform = new THREE.Matrix4(
+      m[0], m[4], m[8], m[12],
+      m[1], m[5], m[9], m[13],
+      m[2], m[6], m[10], m[14],
+      m[3], m[7], m[11], m[15]
+    );
+    for (var j = 0; j < sphere_geometry.faces.length; j++) {
+      sphere_geometry.faces[j].color = color;
+      /*if (sphere_geometry.faces[j].normal.z == 1) {
+        sphere_geometry.faces[j].materialIndex = 1;
+      }*/
+    }
+    geometry.merge(sphere_geometry, transform, i);
+  }
+  var combined_material;
+  if (false) { //solid_material) {
+    var materials = [ material, material_inside ];
+    combined_material = new THREE.MeshFaceMaterial(materials);
+  } else {
+    combined_material = material;
+  }
+  var mesh = new THREE.Mesh(geometry, combined_material);
+  THREE.Mesh.call(this, geometry, material);
+};
+Ellipsoids.prototype=Object.create(THREE.Mesh.prototype);
 
 //----------------------------------------------------------------------
 // MISC DISPLAY OBJECTS

@@ -18,6 +18,8 @@
 	<script src="js/dependencies/hoverIntent.min.js"></script>
 	<script src="js/dependencies/sprintf.js"></script>
 
+  <script src="http://js.leapmotion.com/leap-0.4.3.js"></script>
+
 	<!-- app-specific code -->
 	<script src="js/xtal.js"></script>
 	<script src="js/xtal.model.js"></script>
@@ -68,6 +70,7 @@
         XV.load_dsn6_map("data/1mru.omap", "2mFo-Dfc", 0);
         XV.animate();
 			}
+      XV.enable_leap_motion();
 		});
 	</script>
 </body>

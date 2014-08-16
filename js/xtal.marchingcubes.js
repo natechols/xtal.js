@@ -341,6 +341,11 @@ function isosurface (points, values, n_real, isolevel) {
     throw Error("Array size mismatch: " + values.length + ", " + points.length + " versus " + size_xyz);
   }
 
+  //var points_ = [];
+  //for (var i = 0; i < points.length; i++) {
+  //  points_.push(new THREE.Vector3().fromArray(points[i]));
+  //}
+
   var vertices = new Float32Array(8);
   var n = 0;
   for (var z = 0; z < size_z - 1; z++)
