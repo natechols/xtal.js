@@ -389,7 +389,6 @@ function OnFrame (viewer, frame) {
     console.log(t);
 // XXX This is not really usable at present - need to figure out camera
 // rotation about an arbitrary origin
-/*
     var cx = viewer.camera.position.x,
         cy = viewer.camera.position.y,
         cz = viewer.camera.position.z;
@@ -425,7 +424,6 @@ function OnFrame (viewer, frame) {
     OnChange(viewer);
     viewer.render();
     viewer.update();
-*/
   }
 }
 
