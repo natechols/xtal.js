@@ -8,6 +8,10 @@ div {
   background-color:#202020;
 }
 
+div#Viewer {
+  background-color: black;
+}
+
 div.controlBox {
 }
 

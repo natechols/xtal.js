@@ -14,6 +14,24 @@ xtal.viewer = (function(module) {
 
 var orthographic = false; // FIXME doesn't work properly with controls
 
+function detectmob() { 
+  return true;
+  if (navigator.userAgent.match(/Android/i)
+      || navigator.userAgent.match(/webOS/i)
+      || navigator.userAgent.match(/iPhone/i)
+      || navigator.userAgent.match(/iPad/i)
+      || navigator.userAgent.match(/iPod/i)
+      || navigator.userAgent.match(/BlackBerry/i)
+      || navigator.userAgent.match(/Windows Phone/i)
+  ) {
+    return true;
+  } else if(window.innerWidth <= 800 && window.innerHeight <= 600) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 function XtalViewer (element_id, element, draw_gui, draw_axes) {
   if (! element_id) {
     element_id = "ThreeJS";
@@ -60,6 +78,7 @@ function XtalViewer (element_id, element, draw_gui, draw_axes) {
   else
     renderer = new THREE.CanvasRenderer();
   this.renderer = renderer;
+  renderer.setClearColorHex( 0x000000, 1 );
   renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
   if (! this.element) {
     renderer.domElement.style.position = "absolute";
@@ -488,7 +507,11 @@ function create_gui (viewer) {
   mapRadius.onChange(function (value){
     viewer.redrawMaps(true);
   });
-  viewer.gui.open();
+  if (! detectmob()) {
+    viewer.gui.open();
+  } else {
+    viewer.gui.close();
+  }
 }
 
 function setup_map_dat_gui (viewer, map) {
@@ -526,7 +549,9 @@ function setup_map_dat_gui (viewer, map) {
       map.update_color(value, '');
     });
   }
-  map_gui.open();
+  if (! viewer.gui.closed) {
+    map_gui.open();
+  }
 }
 
 function setup_model_dat_gui (viewer, model) {
@@ -554,7 +579,9 @@ function setup_model_dat_gui (viewer, model) {
       viewer.redraw_model(model);
     }
   });
-  model_gui.open();
+  if (! viewer.gui.closed) {
+    model_gui.open();
+  }
 }
 
 //**********************************************************************
