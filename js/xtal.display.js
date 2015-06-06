@@ -300,7 +300,7 @@ Highlights = function drawHighlights (model, atom_selection) {
   var color = new THREE.Color(0x80ffe0);
   for (var j = 0; j < atom_selection.length; j++) {
     var i = atom_selection[j]
-    var atom = atoms[i];
+    var atom = model.atoms()[i];
     var bonds = model.connectivity[i];
     if (bonds.length == 0) {
       draw_isolated_atom(atom, geometry, color);
