@@ -135,7 +135,7 @@ function UnitCell (a, b, c, alpha, beta, gamma) {
     -this.cos_ang[2] / (this.sin_ang[2] * this.params[0]),
     -(this.cos_ang[2] * this.sin_ang[1] * this.r_cos_ang[0] +
       this.cos_ang[1] * this.sin_ang[2]) /
-     (this.sin_ang[2] * s1rca2 * this.sin_ang[2] * this.params[0]),
+     (this.sin_ang[1] * s1rca2 * this.sin_ang[2] * this.params[0]),
     0.0,
     1.0 / (this.sin_ang[2] * this.params[1]),
     this.r_cos_ang[0] / (s1rca2 * this.sin_ang[2] * this.params[1]),
