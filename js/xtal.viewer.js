@@ -62,7 +62,7 @@ function XtalViewer (element_id, element, draw_gui, draw_axes) {
   var ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT;
   if (orthographic) {
     var NEAR = 5.0, FAR = 100;
-    camera = new THREE.OrthographicCamera(-50, 50, -50 / ASPECT, 50 / ASPECT, NEAR, FAR);
+    camera = new THREE.OrthographicCamera(-50, 50, 50 / ASPECT, -50 / ASPECT, NEAR, FAR);
   } else {
     var VIEW_ANGLE = 45, NEAR = 5.0, FAR = 1000;
     camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
